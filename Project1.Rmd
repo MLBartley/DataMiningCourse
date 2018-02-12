@@ -8,7 +8,7 @@ output: html_notebook
 This project will cover data about soil science. This is a sentence. 
 
 #Description of Data
-
+This is Fei's research data. 
 #Analysis
 
 ```{r LDA - Fei}
