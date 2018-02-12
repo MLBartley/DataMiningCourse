@@ -5,6 +5,7 @@ output: html_notebook
 
 
 #Introduction
+This project will cover data about soil science. 
 
 #Description of Data
 
@@ -30,3 +31,5 @@ output: html_notebook
 
 #Conclusions
 
+#Contributions
+  
