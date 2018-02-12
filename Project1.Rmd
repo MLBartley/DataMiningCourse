@@ -5,14 +5,18 @@ output: html_notebook
 
 
 #Introduction
-This project will cover data about soil science. This is a sentence. 
+This is Project 1 for STAT557 2018Spring by Meridith and Fei. It is about LDA, QDA and Log Regression.
 
 #Description of Data
-This is Fei's research data. 
+Soil data in the US from NRCS, including the physical and chemical properties of soil samples and the corresponding soil classification group (soil order)
+
 #Analysis
+```{r Loading Data}
+ 
+```
+
 
 ```{r LDA - Fei}
-
 ```
 
 ```{r QDA - Fei}
