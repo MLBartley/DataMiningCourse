@@ -9,6 +9,15 @@ This project will cover data about soil science. This is a sentence.
 
 #Description of Data
 This is Fei's research data. 
+ 
+
+
+```{r load code and clean, include=FALSE}
+
+project1data <- read.csv(file = "project1data.csv")
+
+```
+
 #Analysis
 
 ```{r LDA - Fei}
@@ -21,6 +30,12 @@ This is Fei's research data.
 
 ```{r Log Regression - Mer}
 
+#doing logistic regression
+
+# fit.log <- 
+  
+  
+  
 ```
 
 ```{r Model Comparison - Mer}
