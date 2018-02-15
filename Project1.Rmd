@@ -17,6 +17,27 @@ This is Fei's research data. It's about soil sample data over the US downloaded 
 project1data <- read.csv(file = "project1data.csv")
 project1data <- project1data[,-c(1,2,4)] #remove the ID and Horizon columns which are useless,Silt is redundant information since it could be calculated from Sand and Clay. 
 project1data <- project1data[sample(nrow(project1data),nrow(project1data)),] ###shuffle rows
+
+library(ggplot2)
+library(dplyr)
+library(magrittr)
+
+```
+
+
+```{r EDA}
+varlist <- names(project1data)[-9]
+
+customPlot <- function(varName) {
+
+project1data %>% 
+group_by_("Order") %>% 
+select_("Order",varName) %>% 
+ggplot(aes_string("Order",varName)) + geom_boxplot()
+
+}
+lapply(varlist,customPlot)
+
 ```
 
 
