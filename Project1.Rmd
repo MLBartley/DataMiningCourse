@@ -8,27 +8,67 @@ output: html_notebook
 This is Project 1 for STAT557 2018Spring by Meridith and Fei. It is about LDA, QDA and Log Regression.
 
 #Description of Data
-This is Fei's research data. 
+This is Fei's research data. It's about soil sample data over the US downloaded from NRCS, including the physical and chemical properties of soil samples (sand, silt, clay, oganic carbon, bulk  density, CEC soil, CEC clay, base satuaration, and pH) and the corresponding soil classification group (soil order). 
  
 
 
 ```{r load code and clean, include=FALSE}
 
 project1data <- read.csv(file = "project1data.csv")
-
+project1data <- project1data[,-c(1,2,4)] #remove the ID and Horizon columns which are useless,Silt is redundant information since it could be calculated from Sand and Clay. 
+project1data <- project1data[sample(nrow(project1data),nrow(project1data)),] ###shuffle rows
 ```
-Soil data in the US from NRCS, including the physical and chemical properties of soil samples and the corresponding soil classification group (soil order)
+
 
 #Analysis
-```{r Loading Data}
- 
-```
-
 
 ```{r LDA - Fei}
+
+library(MASS)
+library(caret)
+
+#data partition
+lda_train <- createDataPartition(y=project1data$Order, p=0.8,list = FALSE)
+train <- project1data[lda_train,]
+test <- project1data[-lda_train,]
+
+#lda
+lda.fei <- lda(Order ~., data = project1data, subset =lda_train)
+
+#predict test data
+lda.predict = predict(lda.fei, newdata=test)
+
+# Assess the accuracy of the prediction percent correct for each soil class (Order) in test data
+ct.lda <- table(test$Order, lda.predict$class)
+diag(prop.table(ct.lda, 1))
+
+# total percent correct
+sum(diag(prop.table(ct.lda)))
+
 ```
 
+
 ```{r QDA - Fei}
+library(MASS)
+library(caret)
+
+#data partition
+qda_train <- createDataPartition(y=project1data$Order, p=0.8,list = FALSE)
+train <- project1data[qda_train,]
+test <- project1data[-qda_train,]
+
+#qda
+qda.fei <- qda(Order ~., data = project1data, subset =qda_train)
+
+#predict test data
+qda.predict = predict(qda.fei, newdata=test)
+
+# Assess the accuracy of the prediction percent correct for each soil class (Order) in test data
+ct.qda <- table(test$Order, qda.predict$class)
+diag(prop.table(ct.qda, 1))
+
+# total percent correct
+sum(diag(prop.table(ct.qda)))
 
 ```
 
