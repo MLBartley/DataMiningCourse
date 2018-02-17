@@ -5,14 +5,15 @@ output: html_notebook
 
 
 #Introduction
-This is Project 1 for STAT557 2018Spring by Meridith and Fei. It is about LDA, QDA and Log Regression.
+
+This is Project 1 for STAT 557 2018 Spring by Meridith Bartley and Fei. The aim of this project is to practice linear classification methods and QDA and study basic techniques of dimension reduction.In this project we (1) apply LDA, QDA, and multinomial logistic regression to soil sample data in order to calssify into separate soil group (Orders). 
 
 #Description of Data
 This is Fei's research data. It's about soil sample data over the US downloaded from NRCS, including the physical and chemical properties of soil samples (sand, silt, clay, oganic carbon, bulk  density, CEC soil, CEC clay, base satuaration, and pH) and the corresponding soil classification group (soil order). 
  
 
 
-```{r load code and clean, include=FALSE}
+```{r load code and clean, include=FALSE, echo = F, message = F}
 
 project1data <- read.csv(file = "project1data.csv")
 project1data <- project1data[,-c(1,2,4)] #remove the ID and Horizon columns which are useless,Silt is redundant information since it could be calculated from Sand and Clay. 
@@ -29,7 +30,7 @@ library(nnet)
 ```
 
 
-```{r EDA - Mer, echo=FALSE}
+```{r EDA - Mer, echo=FALSE, message = F, results = 'hide', fig.keep='all'}
 
 varlist <- names(project1data)[-9]
 
@@ -41,7 +42,9 @@ select_("Order",varName) %>%
 ggplot(aes_string("Order",varName)) + geom_boxplot()
 
 }
+
 lapply(varlist,customPlot)
+
 
 ```
 
@@ -186,7 +189,7 @@ summary(logr.mer)
 
 #Results
 
-#Conclusions
+
 
 #Contributions
   
