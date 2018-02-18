@@ -10,8 +10,8 @@ This is Project 1 for STAT 557 2018 Spring by Meridith Bartley and Fei. The aim 
 
 #Description of Data
 This is Fei's research data. It's about soil sample data over the US downloaded from NRCS, including the physical and chemical properties of soil samples (sand, silt, clay, oganic carbon, bulk  density, CEC soil, CEC clay, base satuaration, and pH) and the corresponding soil classification group (soil order). 
- 
 
+Boxplots for each physical and chemical property used as explanitory variables in the subsequent classification models are included below. This EDA allows for early indication of which variables may possibly be ommitted during dimention reduction. That is, what properties do not differ significantly between soil Orders.
 
 ```{r load code and clean, include=FALSE, echo = F, message = F}
 
@@ -25,6 +25,7 @@ library(magrittr)
 library(MASS)
 library(caret)
 library(nnet) 
+library(scales)
 
 
 ```
@@ -51,7 +52,10 @@ lapply(varlist,customPlot)
 
 #Analysis
 
-```{r LDA - Fei}
+##Linear Discriminant Analysis (LDA)
+
+
+```{r LDA - Fei, echo=FALSE}
 
 
 
@@ -73,8 +77,23 @@ diag(prop.table(ct.lda, 1))
 # total percent correct
 sum(diag(prop.table(ct.lda)))
 
+
+# Visualizing Data separation for chosen variables
+
+prop.lda = lda.fei$svd^2/sum(lda.fei$svd^2)
+
+dataset = data.frame(Order = test$Order,
+                     lda = lda.predict$x)
+
+lda1 <- ggplot(dataset) + geom_point(aes(lda.LD1, lda.LD2, colour = Order, shape = Order), size = 2.5) + 
+  labs(x = paste("Sand (", percent(prop.lda[1]), ")", sep=""),
+       y = paste("Clay (", percent(prop.lda[2]), ")", sep=""))
+
+
+print(lda1) 
 ```
 
+## Quadratic Discriminant Analysis
 
 ```{r QDA - Fei}
 
@@ -97,6 +116,8 @@ diag(prop.table(ct.qda, 1))
 sum(diag(prop.table(ct.qda)))
 
 ```
+
+##Multinomial Logistic Regression
 
 ```{r Log Regression - Mer}
 
