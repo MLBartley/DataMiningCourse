@@ -25,7 +25,7 @@ library(magrittr)
 library(MASS)
 library(caret)
 library(nnet) 
-
+library(klaR)
 
 ```
 
@@ -62,7 +62,7 @@ test <- project1data[-lda_train,]
 
 #lda
 lda.fei <- MASS::lda(Order ~., data = project1data, subset =lda_train)
-
+plot(lda.fei)
 #predict test data
 lda.predict = predict(lda.fei, newdata=test)
 
@@ -72,6 +72,12 @@ diag(prop.table(ct.lda, 1))
 
 # total percent correct
 sum(diag(prop.table(ct.lda)))
+
+# plot results # 
+plot.lda = data.frame(Pclass=lda.predict$class,lda=lda.predict$x)
+p.lda <- ggplot(plot.lda)+ geom_point(aes(lda.LD1,lda.LD2,colour=Pclass),size=2.5)
+p.lda
+
 
 ```
 
@@ -95,6 +101,9 @@ diag(prop.table(ct.qda, 1))
 
 # total percent correct
 sum(diag(prop.table(ct.qda)))
+
+# plot results # 
+# partimat(Order ~., data = project1data,metod='qda') figures are too large and took forever to show up. 
 
 ```
 
