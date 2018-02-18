@@ -56,7 +56,7 @@ lapply(varlist,customPlot)
 ##Linear Discriminant Analysis (LDA)
 
 
-```{r LDA - Fei, echo=FALSE}
+```{r LDA - Fei, echo=FALSE, fig.keep = 'all'}
 
 
 
@@ -67,7 +67,7 @@ test <- project1data[-lda_train,]
 
 #lda
 lda.fei <- MASS::lda(Order ~., data = project1data, subset =lda_train)
-plot(lda.fei)
+# plot(lda.fei)
 #predict test data
 lda.predict = predict(lda.fei, newdata=test)
 
@@ -82,17 +82,17 @@ sum(diag(prop.table(ct.lda)))
 
 # Visualizing Data separation for chosen variables
 
-prop.lda = lda.fei$svd^2/sum(lda.fei$svd^2)
-
-dataset = data.frame(Order = test$Order,
-                     lda = lda.predict$x)
-
-lda1 <- ggplot(dataset) + geom_point(aes(lda.LD1, lda.LD2, colour = Order, shape = Order), size = 2.5) + 
-  labs(x = paste("Sand (", percent(prop.lda[1]), ")", sep=""),
-       y = paste("Clay (", percent(prop.lda[2]), ")", sep=""))
-
-
-print(lda1) 
+# prop.lda = lda.fei$svd^2/sum(lda.fei$svd^2)
+# 
+# dataset = data.frame(Order = test$Order,
+#                      lda = lda.predict$x)
+# 
+# lda1 <- ggplot(dataset) + geom_point(aes(lda.LD1, lda.LD2, colour = Order, shape = Order), size = 2.5) + 
+#   labs(x = paste("Sand (", percent(prop.lda[1]), ")", sep=""),
+#        y = paste("Clay (", percent(prop.lda[2]), ")", sep=""))
+# 
+# 
+# print(lda1) 
 
 
 # plot results 
@@ -100,12 +100,12 @@ plot.lda = data.frame(Pclass=lda.predict$class,lda=lda.predict$x)
 p.lda <- ggplot(plot.lda)+ geom_point(aes(lda.LD1,lda.LD2,colour=Pclass),size=2.5)
 p.lda
 
-
+## MER: are LD1 and LD2 Sand + Clay? 
 ```
 
 ## Quadratic Discriminant Analysis
 
-```{r QDA - Fei}
+```{r QDA - Fei, echo =F}
 
 #data partition
 qda_train <- createDataPartition(y=project1data$Order, p=0.8,list = FALSE)
@@ -132,7 +132,7 @@ sum(diag(prop.table(ct.qda)))
 
 ##Multinomial Logistic Regression
 
-```{r Log Regression - Mer}
+```{r Log Regression - Mer, echo = F}
 
 #data partition
 logr_train <- caret::createDataPartition(y=project1data$Order, p=0.8,list = FALSE)
@@ -217,13 +217,21 @@ summary(logr.mer)
 
 ```
 
-```{r Model Comparison - Mer}
 
-```
 
 #Results
 
+The results from these three approaches show that...
 
+
+In order to compare the reults it is important to recall the diffences between these three classification approaches. The difference between LDA and logistic regression is that linear coefficients are estimated differently. MLE for logistic models and estimated mean and variance based on Gaussian assumptions for the LDA. LDA makes more restrictive Gaussian assumptions and therefore often expected to work better than logistic models IF they are met. QDA serves as a compromise between non-parametric methods (not explored in this project) and the linear LDA and logistic regression approaches. Since QDA assumes a quadratic decision boundary, it can accurately model a wider range of problems than can the linear methods. QDA can perform better in the presence of a limited number of training observations because it does make some assumptions about the form of the decision boundary.
+
+
+```{r Model Comparison - Mer}
+
+
+
+```
 
 #Contributions
   
