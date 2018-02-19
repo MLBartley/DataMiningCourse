@@ -1,6 +1,10 @@
 ---
 title: "Project 1"
-output: html_notebook
+output:
+  html_notebook: default
+  pdf_document: 
+    keep_tex: yes
+    latex_engine: xelatex
 ---
 
 
@@ -31,7 +35,7 @@ library(klaR)
 
 ```
 
-
+## Exploritory Data Analysis
 ```{r EDA - Mer, echo=FALSE, message = F, results = 'hide', fig.keep='all'}
 
 varlist <- names(project1data)[-9]
@@ -46,6 +50,9 @@ ggplot(aes_string("Order",varName)) + geom_boxplot()
 }
 
 lapply(varlist,customPlot)
+
+pairs(project1data)
+cor(project1data[, -9])
 
 
 ```
@@ -97,7 +104,7 @@ sum(diag(prop.table(ct.lda)))
 
 # plot results 
 plot.lda = data.frame(Pclass=lda.predict$class,lda=lda.predict$x)
-p.lda <- ggplot(plot.lda)+ geom_point(aes(lda.LD1,lda.LD2,colour=Pclass),size=2.5)
+p.lda <- ggplot(plot.lda)+ geom_point(aes(lda.LD1,lda.LD2,colour=Pclass),size=1)
 p.lda
 
 ## MER: are LD1 and LD2 Sand + Clay? 
@@ -132,7 +139,7 @@ sum(diag(prop.table(ct.qda)))
 
 ##Multinomial Logistic Regression
 
-```{r Log Regression - Mer, echo = F}
+```{r Log Regression - Mer, echo = F, results = 'hide'}
 
 #data partition
 logr_train <- caret::createDataPartition(y=project1data$Order, p=0.8,list = FALSE)
