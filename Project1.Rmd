@@ -1,10 +1,10 @@
 ---
 title: "Project 1"
 output:
-  html_notebook: default
   pdf_document: 
     keep_tex: yes
     latex_engine: xelatex
+  # html_notebook: default
 ---
 
 
@@ -89,17 +89,17 @@ sum(diag(prop.table(ct.lda)))
 
 # Visualizing Data separation for chosen variables
 
-# prop.lda = lda.fei$svd^2/sum(lda.fei$svd^2)
-# 
-# dataset = data.frame(Order = test$Order,
-#                      lda = lda.predict$x)
-# 
-# lda1 <- ggplot(dataset) + geom_point(aes(lda.LD1, lda.LD2, colour = Order, shape = Order), size = 2.5) + 
-#   labs(x = paste("Sand (", percent(prop.lda[1]), ")", sep=""),
-#        y = paste("Clay (", percent(prop.lda[2]), ")", sep=""))
-# 
-# 
-# print(lda1) 
+ prop.lda = lda.fei$svd^2/sum(lda.fei$svd^2)
+
+dataset = data.frame(Order = test$Order,
+                     lda = lda.predict$x)
+
+lda1 <- ggplot(dataset) + geom_point(aes(lda.LD1, lda.LD2, colour = Order), size = 1) +
+  labs(x = paste("LD1 (", percent(prop.lda[1]), ")", sep=""),
+       y = paste("LD2 (", percent(prop.lda[2]), ")", sep=""))
+
+
+print(lda1)
 
 
 # plot results 
@@ -219,6 +219,8 @@ test <- project1data[-logr_train,]
 
 logr.mer <- nnet::multinom(Order ~ ., data = project1data, subset = logr_train)
 summary(logr.mer)
+
+logr.predict <- predict(logr.mer, newdata = test)
   
 
 
