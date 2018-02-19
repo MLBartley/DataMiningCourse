@@ -1,7 +1,12 @@
 ---
 title: "Project 1"
 output:
+<<<<<<< HEAD
   pdf_document: 
+=======
+  word_document: default
+  pdf_document:
+>>>>>>> b0c0aac450b3d03923b142b12544fd11d3d76594
     keep_tex: yes
     latex_engine: xelatex
   # html_notebook: default
