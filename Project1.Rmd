@@ -32,12 +32,14 @@ library(caret)
 library(nnet) 
 library(scales)
 library(klaR)
+library(grid)
+library(gridExtra)
 
 
 ```
 
 ## Exploritory Data Analysis
-```{r EDA - Mer, echo=FALSE, message = F, results = 'hide', fig.keep='all'}
+```{r EDA - Mer, echo=FALSE, message = F, results = 'hide', fig.keep='all', fig.width = 8}
 
 varlist <- names(project1data)[-9]
 
@@ -46,14 +48,17 @@ customPlot <- function(varName) {
 project1data %>% 
 group_by_("Order") %>% 
 select_("Order",varName) %>% 
-ggplot(aes_string("Order",varName)) + geom_boxplot()
+ggplot(aes_string("Order",varName)) + geom_boxplot() + 
+   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
 }
 
-lapply(varlist,customPlot)
+grid.arrange(grobs = lapply(varlist[1:4],customPlot))
+grid.arrange(grobs = lapply(varlist[5:8],customPlot))
 
-pairs(project1data)
-cor(project1data[, -9])
+
+# pairs(project1data)
+# cor(project1data[, -9])
 
 
 ```
@@ -233,7 +238,7 @@ The results from these three approaches show that...
 In order to compare the reults it is important to recall the diffences between these three classification approaches. The difference between LDA and logistic regression is that linear coefficients are estimated differently. MLE for logistic models and estimated mean and variance based on Gaussian assumptions for the LDA. LDA makes more restrictive Gaussian assumptions and therefore often expected to work better than logistic models IF they are met. QDA serves as a compromise between non-parametric methods (not explored in this project) and the linear LDA and logistic regression approaches. Since QDA assumes a quadratic decision boundary, it can accurately model a wider range of problems than can the linear methods. QDA can perform better in the presence of a limited number of training observations because it does make some assumptions about the form of the decision boundary.
 
 
-```{r Model Comparison - Mer}
+```{r Model Comparison - Mer, echo = F, warning = F, message = F, results = F}
 #lda
 correct.lda <- diag(prop.table(ct.lda, 1))
 # total percent correct
