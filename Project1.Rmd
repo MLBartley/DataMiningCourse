@@ -1,8 +1,8 @@
 ---
 title: "Project 1"
 output:
-  html_notebook: default
-  pdf_document: 
+  word_document: default
+  pdf_document:
     keep_tex: yes
     latex_engine: xelatex
 ---
