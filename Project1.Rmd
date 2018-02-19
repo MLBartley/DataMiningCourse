@@ -1,15 +1,11 @@
 ---
 title: "Project 1"
 output:
-<<<<<<< HEAD
-  pdf_document: 
-=======
-  word_document: default
+  html_notebook: default
   pdf_document:
->>>>>>> b0c0aac450b3d03923b142b12544fd11d3d76594
     keep_tex: yes
     latex_engine: xelatex
-  # html_notebook: default
+  word_document: default
 ---
 
 
@@ -80,17 +76,15 @@ test <- project1data[-lda_train,]
 #lda
 lda.fei <- MASS::lda(Order ~., data = project1data, subset =lda_train)
 # plot(lda.fei)
+
+
 #predict test data
 lda.predict = predict(lda.fei, newdata=test)
 
+
+
 # Assess the accuracy of the prediction percent correct for each soil class (Order) in test data
 ct.lda <- table(test$Order, lda.predict$class)
-diag(prop.table(ct.lda, 1))
-
-# total percent correct
-sum(diag(prop.table(ct.lda)))
-
-
 
 # Visualizing Data separation for chosen variables
 
@@ -132,10 +126,7 @@ qda.predict = predict(qda.fei, newdata=test)
 
 # Assess the accuracy of the prediction percent correct for each soil class (Order) in test data
 ct.qda <- table(test$Order, qda.predict$class)
-diag(prop.table(ct.qda, 1))
 
-# total percent correct
-sum(diag(prop.table(ct.qda)))
 
 # plot results # 
 # partimat(Order ~., data = project1data,metod='qda') figures are too large and took forever to show up. 
@@ -227,6 +218,7 @@ summary(logr.mer)
 
 logr.predict <- predict(logr.mer, newdata = test)
   
+ct.logr <- table(test$Order, logr.predict)
 
 
 ```
@@ -242,8 +234,31 @@ In order to compare the reults it is important to recall the diffences between t
 
 
 ```{r Model Comparison - Mer}
+#lda
+correct.lda <- diag(prop.table(ct.lda, 1))
+# total percent correct
+totcorrect.lda <- sum(diag(prop.table(ct.lda)))
+
+#qda
+correct.qda <- diag(prop.table(ct.qda, 1))
+# total percent correct
+totcorrect.qda <- sum(diag(prop.table(ct.qda)))
+
+#mult log reg
+correct.logr <- diag(prop.table(ct.logr, 1))
+# total percent correct
+tot.correct.logr <- sum(diag(prop.table(ct.logr)))
+
+#output table
+
+model_comparison <- bind_rows(correct.lda, correct.qda, correct.logr)
 
 
+model_comparison <- model_comparison %>%
+                    mutate(Overall = c(totcorrect.lda, totcorrect.qda, tot.correct.logr)) %>% 
+  set_rownames(c("LDA", "QDA", "Mult Log Reg"))
+
+knitr::kable(round(model_comparison, digits = 2))
 
 ```
 
