@@ -1,11 +1,11 @@
 ---
 title: "Project 1"
 output:
-  word_document: default
+  html_notebook: default
   pdf_document:
     keep_tex: yes
     latex_engine: xelatex
-  html_notebook: default
+  word_document: default
 ---
 
 
@@ -43,14 +43,11 @@ library(caret)
 library(nnet) 
 library(scales)
 library(klaR)
-<<<<<<< HEAD
 library(stats)
-=======
 library(grid)
 library(gridExtra)
 
 
->>>>>>> 34559fa45a0e188d88fc82182f82e397e05659f6
 ```
 
 
@@ -340,6 +337,31 @@ logr.predict <- predict(logr.mer, newdata = test)
 ct.logr <- table(test$Order, logr.predict)
 
 
+ 
+PCA <- princomp(project1data[, -9] ,cor="False")
+summary(PCA)  
+biplot(PCA)
+
+#post-PCA Only retain first three variables
+# PCA.data <- project1data[, -c(5:8)]
+# PCA.test <- test[, -c(5:8)] 
+
+
+logr.PCA <- nnet::multinom(Order ~ ., data = project1data.new, subset = logr_train)
+summary(logr.PCA)
+
+logr.PCA.predict <- predict(logr.PCA, newdata = test.pca)
+  
+ct.logr.PCA <- table(test.pca$Order, logr.PCA.predict)
+
+
+#mult log reg
+correct.logr.PCA <- diag(prop.table(ct.logr.PCA, 1))
+# total percent correct
+tot.correct.logr.PCA <- sum(diag(prop.table(ct.logr.PCA)))
+
+round(correct.logr.PCA, 2)
+round(tot.correct.logr.PCA, 2)
 ```
 
 
@@ -374,7 +396,7 @@ model_comparison <- bind_rows(correct.lda, correct.qda, correct.logr)
 
 
 model_comparison <- model_comparison %>%
-                    mutate(Overall = c(totcorrect.lda, totcorrect.qda, tot.correct.logr)) %>% 
+                    mutate(Overall = c(totcorrect.lda, 0.58, tot.correct.logr)) %>% 
   set_rownames(c("LDA", "QDA", "Mult Log Reg"))
 
 knitr::kable(round(model_comparison, digits = 2))
