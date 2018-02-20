@@ -1,29 +1,40 @@
 ---
 title: "Project 1"
 output:
-  html_notebook: default
+  word_document: default
   pdf_document:
     keep_tex: yes
     latex_engine: xelatex
-  word_document: default
+  html_notebook: default
 ---
 
 
 #Introduction
 
-This is Project 1 for STAT 557 2018 Spring by Meridith Bartley and Fei. The aim of this project is to practice linear classification methods and QDA and study basic techniques of dimension reduction.In this project we (1) apply LDA, QDA, and multinomial logistic regression to soil sample data in order to calssify into separate soil group (Orders). 
+This is Project 1 for STAT 557 2018 Spring by Meridith Bartley and Fei. The aim of this project is to practice linear classification methods and QDA and study basic techniques of dimension reduction.In this project we  apply LDA, QDA, and multinomial logistic regression to soil sample data in order to classify into separate soil group (Orders). 
 
 #Description of Data
-This is Fei's research data. It's about soil sample data over the US downloaded from NRCS, including the physical and chemical properties of soil samples (sand, silt, clay, oganic carbon, bulk  density, CEC soil, CEC clay, base satuaration, and pH) and the corresponding soil classification group (soil order). 
+This dataset contains soil sample data over the US downloaded from Natural Resources Conservation Service (NRCS). After removing the incomplete data records, there are around 14,000 records left, each of which includes physical and chemical properties of soil samples (sand, silt, clay, organic carbon, bulk density, CEC soil, CEC clay, base saturation, and pH) and the corresponding soil classification group (soil order). 
 
 Boxplots for each physical and chemical property used as explanitory variables in the subsequent classification models are included below. This EDA allows for early indication of which variables may possibly be ommitted during dimention reduction. That is, what properties do not differ significantly between soil Orders.
 
 ```{r load code and clean, include=FALSE, echo = F, message = F}
-
+# Basic clearning of our dataset 
 project1data <- read.csv(file = "project1data.csv")
 project1data <- project1data[,-c(1,2,4)] #remove the ID and Horizon columns which are useless,Silt is redundant information since it could be calculated from Sand and Clay. 
 project1data <- project1data[sample(nrow(project1data),nrow(project1data)),] ###shuffle rows
 
+
+# Create new dataset with PCA 
+pca = prcomp(project1data[,-9])
+print(pca$rotation)
+summary.pca = summary(pca)
+print(summary.pca)
+project1data.new = data.frame(pca=pca$x[,1:4],Order=project1data$Order) #First 4 components explained 99.8% of the variance in the original dataset
+
+```
+
+```{r load required packages}
 library(ggplot2)
 library(dplyr)
 library(magrittr)
@@ -32,11 +43,16 @@ library(caret)
 library(nnet) 
 library(scales)
 library(klaR)
+<<<<<<< HEAD
+library(stats)
+=======
 library(grid)
 library(gridExtra)
 
 
+>>>>>>> 34559fa45a0e188d88fc82182f82e397e05659f6
 ```
+
 
 ## Exploritory Data Analysis
 ```{r EDA - Mer, echo=FALSE, message = F, results = 'hide', fig.keep='all', fig.width = 8}
@@ -66,77 +82,175 @@ grid.arrange(grobs = lapply(varlist[5:8],customPlot))
 
 #Analysis
 
-##Linear Discriminant Analysis (LDA)
+##Linear Discriminant Analysis (LDA) of original dataset (without dimension reduction)
 
-
-```{r LDA - Fei, echo=FALSE, fig.keep = 'all'}
-
-
+```{r}
 
 #data partition
-lda_train <- caret::createDataPartition(y=project1data$Order, p=0.8,list = FALSE)
-train <- project1data[lda_train,]
-test <- project1data[-lda_train,]
+train_id <- caret::createDataPartition(y=project1data$Order, p=0.8,list = FALSE)
+#train <- project1data[lda_train,]
+#test <- project1data[-lda_train,]
 
+```
+
+
+
+```{r LDA with no PCA - Fei, echo=FALSE, fig.keep = 'all'}
 #lda
-lda.fei <- MASS::lda(Order ~., data = project1data, subset =lda_train)
+lda.fei <- MASS::lda(Order ~., data = project1data, subset =train_id)
 # plot(lda.fei)
 
 
 #predict test data
+test <- project1data[-train_id,]
 lda.predict = predict(lda.fei, newdata=test)
 
 
-
-# Assess the accuracy of the prediction percent correct for each soil class (Order) in test data
+# Assess the accuracy of the prediction for each soil class (Order) in test data
 ct.lda <- table(test$Order, lda.predict$class)
+diag(prop.table(ct.lda, 1))
 
-# Visualizing Data separation for chosen variables
+# total accuracy of the prediction
+sum(diag(prop.table(ct.lda)))
 
- prop.lda = lda.fei$svd^2/sum(lda.fei$svd^2)
+# Visualizing Data separation in True classification of test data
+prop.lda = lda.fei$svd^2/sum(lda.fei$svd^2)
 
 dataset = data.frame(Order = test$Order,
                      lda = lda.predict$x)
 
-lda1 <- ggplot(dataset) + geom_point(aes(lda.LD1, lda.LD2, colour = Order), size = 1) +
+t.lda <- ggplot(dataset) + geom_point(aes(lda.LD1, lda.LD2, colour = Order), size = 1) +
   labs(x = paste("LD1 (", percent(prop.lda[1]), ")", sep=""),
        y = paste("LD2 (", percent(prop.lda[2]), ")", sep=""))
 
 
-print(lda1)
+print(t.lda)
 
 
-# plot results 
+# Visualizing Data separation in Prediction Results of test data 
 plot.lda = data.frame(Pclass=lda.predict$class,lda=lda.predict$x)
-p.lda <- ggplot(plot.lda)+ geom_point(aes(lda.LD1,lda.LD2,colour=Pclass),size=1)
-p.lda
+p.lda <- ggplot(plot.lda)+ geom_point(aes(lda.LD1,lda.LD2,colour=Pclass),size=1) +
+  labs(x = paste("LD1 (", percent(prop.lda[1]), ")", sep=""),
+       y = paste("LD2 (", percent(prop.lda[2]), ")", sep=""))
+print(p.lda)
 
-## MER: are LD1 and LD2 Sand + Clay? 
+
+## MER: are LD1 and LD2 Sand + Clay? Fei: No, they are first component and second component 
+
+
 ```
 
-## Quadratic Discriminant Analysis
+##Linear Discriminant Analysis (LDA) of reduced dataset (with dimension reduction from PCA)
 
-```{r QDA - Fei, echo =F}
+```{r LDA with PCA - Fei, echo=FALSE, fig.keep = 'all'}
+#data partition
+#lda_train <- caret::createDataPartition(y=project1data.new$Order, p=0.8,list = FALSE)
+#train.pca <- project1data.new[lda_train,]
+test.pca <- project1data.new[-train_id,]
+
+#lda
+lda.fei.pca <- MASS::lda(Order ~., data = project1data.new, subset =train_id)
+# plot(lda.fei)
+
+
+#predict test data
+lda.predict.pca = predict(lda.fei.pca, newdata=test.pca)
+
+
+# Assess the accuracy of the prediction for each soil class (Order) in test data
+ct.lda.pca <- table(test.pca$Order, lda.predict.pca$class)
+diag(prop.table(ct.lda.pca, 1))
+
+
+# total accuracy of the prediction
+sum(diag(prop.table(ct.lda.pca)))
+
+# Visualizing Data separation in True classification of test data
+prop.lda.pca = lda.fei.pca$svd^2/sum(lda.fei.pca$svd^2)
+
+dataset.pca = data.frame(Order = test.pca$Order,
+                     lda = lda.predict.pca$x)
+
+t.lda.pca <- ggplot(dataset.pca) + geom_point(aes(lda.LD1, lda.LD2, colour = Order), size = 1) +
+  labs(x = paste("LD1 (", percent(prop.lda.pca[1]), ")", sep=""),
+       y = paste("LD2 (", percent(prop.lda.pca[2]), ")", sep=""))
+
+
+print(t.lda.pca)
+
+
+# Visualizing Data separation in Prediction Results of test data 
+plot.lda.pca = data.frame(Pclass=lda.predict.pca$class,lda=lda.predict.pca$x)
+p.lda.pca <- ggplot(plot.lda.pca)+ geom_point(aes(lda.LD1,lda.LD2,colour=Pclass),size=1) +
+  labs(x = paste("LD1 (", percent(prop.lda.pca[1]), ")", sep=""),
+       y = paste("LD2 (", percent(prop.lda.pca[2]), ")", sep=""))
+print(p.lda.pca)
+
+```
+
+
+
+## Quadratic Discriminant Analysis (QDA) of original dataset (without dimension reduction)
+
+```{r QDA without PCA- Fei, echo =F}
 
 #data partition
-qda_train <- createDataPartition(y=project1data$Order, p=0.8,list = FALSE)
-train <- project1data[qda_train,]
-test <- project1data[-qda_train,]
+#qda_train <- caret::createDataPartition(y=project1data$Order, p=0.8,list = FALSE)
+#train <- project1data[qda_train,]
+#test <- project1data[-qda_train,]
 
 #qda
-qda.fei <- MASS::qda(Order ~., data = project1data, subset =qda_train)
+qda.fei <- MASS::qda(Order ~., data = project1data, subset =train_id)
 
 #predict test data
 qda.predict = predict(qda.fei, newdata=test)
 
-# Assess the accuracy of the prediction percent correct for each soil class (Order) in test data
+# Assess the accuracy of the prediction for each soil class (Order) in test data
 ct.qda <- table(test$Order, qda.predict$class)
+diag(prop.table(ct.qda, 1))
+
+
+# total accuracy of the prediction
+sum(diag(prop.table(ct.qda)))
 
 
 # plot results # 
 # partimat(Order ~., data = project1data,metod='qda') figures are too large and took forever to show up. 
 
 ```
+
+
+
+
+## Quadratic Discriminant Analysis (QDA) of reduced dataset (with dimension reduction from PCA)
+
+```{r QDA with PCA - Fei, echo =F}
+
+#data partition
+#qda_train <- createDataPartition(y=project1data$Order, p=0.8,list = FALSE)
+#train.pca <- project1data.new[qda_train,]
+#test.pca <- project1data.new[-qda_train,]
+
+#qda
+qda.fei.pca <- MASS::qda(Order ~., data = project1data.new, subset =train_id)
+
+#predict test data
+qda.predict.pca = predict(qda.fei.pca, newdata=test.pca)
+
+# Assess the accuracy of the prediction percent correct for each soil class (Order) in test data
+ct.qda.pca <- table(test.pca$Order, qda.predict.pca$class)
+diag(prop.table(ct.qda.pca, 1))
+
+
+# total accuracy of the prediction
+sum(diag(prop.table(ct.qda.pca)))
+
+# plot results # 
+partimat(Order ~., data =  project1data.new[train_id,],metod='qda') # figures are too large and took forever to show up. 
+
+```
+
+
 
 ##Multinomial Logistic Regression
 
