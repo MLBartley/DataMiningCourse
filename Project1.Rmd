@@ -11,10 +11,10 @@ output:
 
 #Introduction
 
-This is Project 1 for STAT 557 2018 Spring by Meridith Bartley and Fei. The aim of this project is to practice linear classification methods and QDA and study basic techniques of dimension reduction.In this project we  apply LDA, QDA, and multinomial logistic regression to soil sample data in order to classify into separate soil group (Orders). 
+This is Project 1 for STAT 557 2018Spring by Meridith Bartley and Fei. The aim of this project is to practice discriminant analysis and logistic regression and study basic techniques of dimension reduction. In this project we applied LDA, QDA, and multinomial logistic regression to soil sample data in order to classify into separate soil group (Orders). 
 
 #Description of Data
-This dataset contains soil sample data over the US downloaded from Natural Resources Conservation Service (NRCS). After removing the incomplete data records, there are around 14,000 records left, each of which includes physical and chemical properties of soil samples (sand, silt, clay, organic carbon, bulk density, CEC soil, CEC clay, base saturation, and pH) and the corresponding soil classification group (soil order). 
+This dataset contains soil sample data over the US downloaded from Natural Resources Conservation Service (NRCS). After removing the incomplete data records and excluding the data records with impossible values, there are around 14,000 records left, each of which includes physical and chemical properties of soil samples (sand, silt, clay, organic carbon, bulk density, CEC soil, CEC clay, base saturation, and pH) and the corresponding soil classification group (soil order). 
 
 Boxplots for each physical and chemical property used as explanitory variables in the subsequent classification models are included below. This EDA allows for early indication of which variables may possibly be ommitted during dimention reduction. That is, what properties do not differ significantly between soil Orders.
 
@@ -24,13 +24,6 @@ project1data <- read.csv(file = "project1data.csv")
 project1data <- project1data[,-c(1,2,4)] #remove the ID and Horizon columns which are useless,Silt is redundant information since it could be calculated from Sand and Clay. 
 project1data <- project1data[sample(nrow(project1data),nrow(project1data)),] ###shuffle rows
 
-
-# Create new dataset with PCA 
-pca = prcomp(project1data[,-9])
-print(pca$rotation)
-summary.pca = summary(pca)
-print(summary.pca)
-project1data.new = data.frame(pca=pca$x[,1:4],Order=project1data$Order) #First 4 components explained 99.8% of the variance in the original dataset
 
 ```
 
@@ -76,10 +69,28 @@ grid.arrange(grobs = lapply(varlist[5:8],customPlot))
 
 ```
 
+# Principle Component Analysis to reduce dimensions 
+
+In order to test whether dimension reduction will help prediction or not, we also conducted Principle Component Analysis on the original dataset to get a new dataset with less dimensions. According to our PCA results, the first four component in total can explain about 99.8% of variance of the original database. Their coefficients are also listed in the table below. Therefore, we took the first four components and the soil order value to build a new dataset with less dimensions. 
+
+```{r - Fei PCA}
+
+# Create new dataset with PCA 
+pca = prcomp(project1data[,-9])
+print(pca$rotation)
+summary.pca = summary(pca)
+print(summary.pca)
+project1data.new = data.frame(pca=pca$x[,1:4],Order=project1data$Order) #First 4 components explained 99.8% of the variance in the original dataset
+
+```
+
 
 #Analysis
 
+In the following analysis with three methods (LDA, QDA and logistic) and two datasets (original and dimension-reduced), we randomly selected 80% of the entire data as training data and the rest 20% as test data.
+
 ##Linear Discriminant Analysis (LDA) of original dataset (without dimension reduction)
+Firstly, we conducted the LDA on the original dataset, the overall prediction accuracy of our model in testing data is about 58%. Considering we have in total 9 possible classes, the accuracy rate is fairly good. In the plot, we showed the differenced between the true and predicted classes. It can be seen that in the left part of the true class, there is a lot of overlap and in the middle part, there is some overlap. But in the prediction plot, different classes separate pretty well from each other, which indicates that our model seperate the classes more than it should be. This overlap between classes in reality also suggests us that we should consider more variables to separate them well. 
 
 ```{r}
 
@@ -138,6 +149,8 @@ print(p.lda)
 ```
 
 ##Linear Discriminant Analysis (LDA) of reduced dataset (with dimension reduction from PCA)
+We also conducted the same LDA method on the dimension-reduced database. However, the result is less satisfying than using the original database. The prediction accuracy here is about 54%, less than 58% of the original database. The plot below shows the difference between the true and predicted classes. Again, the overlap in the true class plots indicate the difficulty to classify those samples. 
+
 
 ```{r LDA with PCA - Fei, echo=FALSE, fig.keep = 'all'}
 #data partition
@@ -187,7 +200,9 @@ print(p.lda.pca)
 
 
 
-## Quadratic Discriminant Analysis (QDA) of original dataset (without dimension reduction)
+## Quadratic Discriminant Analysis (QDA) of original dataset and dimension-reduced dataset
+
+We used the same original and dimension-reduced dataset to apply QDA method. The prediction accuracy of QDA is very similar to LDA. For the original dataset, the overall accuracy is also 58%. When applying the same method to the dimension-reduced dataset, the oveall accuracy decreases to 54%. 
 
 ```{r QDA without PCA- Fei, echo =F}
 
@@ -219,7 +234,6 @@ sum(diag(prop.table(ct.qda)))
 
 
 
-## Quadratic Discriminant Analysis (QDA) of reduced dataset (with dimension reduction from PCA)
 
 ```{r QDA with PCA - Fei, echo =F}
 
