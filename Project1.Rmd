@@ -1,17 +1,17 @@
 ---
 title: "Project 1"
 output:
-  html_notebook: default
   pdf_document:
     keep_tex: yes
     latex_engine: xelatex
+  html_notebook: default
   word_document: default
 ---
 
 
 #Introduction
 
-This is Project 1 for STAT 557 2018Spring by Meridith Bartley and Fei. The aim of this project is to practice discriminant analysis and logistic regression and study basic techniques of dimension reduction. In this project we applied LDA, QDA, and multinomial logistic regression to soil sample data in order to classify into separate soil group (Orders). 
+This is Project 1 for STAT 557 2018 Spring by Meridith Bartley and Fei Jiang. The aim of this project is to practice discriminant analysis and logistic regression and study basic techniques of dimension reduction. In this project we applied Linear Discriminant Analysis (LDA), Quadratic Discriminant Analysis (QDA), and multinomial logistic regression to soil sample data in order to classify into separate soil group (Orders). 
 
 #Description of Data
 This dataset contains soil sample data over the US downloaded from Natural Resources Conservation Service (NRCS). After removing the incomplete data records and excluding the data records with impossible values, there are around 14,000 records left, each of which includes physical and chemical properties of soil samples (sand, silt, clay, organic carbon, bulk density, CEC soil, CEC clay, base saturation, and pH) and the corresponding soil classification group (soil order). 
@@ -27,7 +27,7 @@ project1data <- project1data[sample(nrow(project1data),nrow(project1data)),] ###
 
 ```
 
-```{r load required packages}
+```{r load required packages, include=FALSE}
 library(ggplot2)
 library(dplyr)
 library(magrittr)
@@ -69,18 +69,25 @@ grid.arrange(grobs = lapply(varlist[5:8],customPlot))
 
 ```
 
-# Principle Component Analysis to reduce dimensions 
 
-In order to test whether dimension reduction will help prediction or not, we also conducted Principle Component Analysis on the original dataset to get a new dataset with less dimensions. According to our PCA results, the first four component in total can explain about 99.8% of variance of the original database. Their coefficients are also listed in the table below. Therefore, we took the first four components and the soil order value to build a new dataset with less dimensions. 
 
-```{r - Fei PCA}
+# Principle Component Analysis
+
+In order to test whether dimension reduction will improve predictions we also conducted Principle Component Analysis on the original dataset to get a new dataset with fewer dimensions. According to our PCA results, the first four component in total can explain about 99.8% of variance of the original database. The coefficients of the relevent componets are listed in the table below. Therefore, we took the first four components and the soil order value to build a new dataset with less dimensions. 
+
+```{r - Fei PCA, echo=FALSE}
 
 # Create new dataset with PCA 
 pca = prcomp(project1data[,-9])
-print(pca$rotation)
+# print(pca$rotation)
 summary.pca = summary(pca)
-print(summary.pca)
+# print(summary.pca)
 project1data.new = data.frame(pca=pca$x[,1:4],Order=project1data$Order) #First 4 components explained 99.8% of the variance in the original dataset
+
+#table of the coefficients
+knitr::kable(pca$rotation[, 1:4])
+
+
 
 ```
 
@@ -89,10 +96,12 @@ project1data.new = data.frame(pca=pca$x[,1:4],Order=project1data$Order) #First 4
 
 In the following analysis with three methods (LDA, QDA and logistic) and two datasets (original and dimension-reduced), we randomly selected 80% of the entire data as training data and the rest 20% as test data.
 
-##Linear Discriminant Analysis (LDA) of original dataset (without dimension reduction)
-Firstly, we conducted the LDA on the original dataset, the overall prediction accuracy of our model in testing data is about 58%. Considering we have in total 9 possible classes, the accuracy rate is fairly good. In the plot, we showed the differenced between the true and predicted classes. It can be seen that in the left part of the true class, there is a lot of overlap and in the middle part, there is some overlap. But in the prediction plot, different classes separate pretty well from each other, which indicates that our model seperate the classes more than it should be. This overlap between classes in reality also suggests us that we should consider more variables to separate them well. 
+##Linear Discriminant Analysis (LDA) 
 
-```{r}
+###Original Dataset
+We initially conducted the LDA on the original dataset and found that the overall prediction accuracy of our model in testing data is about 58%. Considering we have in total 9 possible classes, the accuracy rate is fairly good.  
+
+```{r include=FALSE}
 
 #data partition
 train_id <- caret::createDataPartition(y=project1data$Order, p=0.8,list = FALSE)
@@ -100,7 +109,6 @@ train_id <- caret::createDataPartition(y=project1data$Order, p=0.8,list = FALSE)
 #test <- project1data[-lda_train,]
 
 ```
-
 
 
 ```{r LDA with no PCA - Fei, echo=FALSE, fig.keep = 'all'}
@@ -114,13 +122,21 @@ test <- project1data[-train_id,]
 lda.predict = predict(lda.fei, newdata=test)
 
 
+
+
 # Assess the accuracy of the prediction for each soil class (Order) in test data
 ct.lda <- table(test$Order, lda.predict$class)
-diag(prop.table(ct.lda, 1))
+
 
 # total accuracy of the prediction
-sum(diag(prop.table(ct.lda)))
+# sum(diag(prop.table(ct.lda)))
 
+```
+
+
+In the follow plots, we shows the differenced between the true and predicted classes (top and bottom plots, respectively). It can be seen that in the left part of the true class, there is a lot of overlap and in the middle part, there is some overlap. But in the prediction plot, different classes separate pretty well from each other, which indicates that our model seperate the classes more than it should be. This overlap between classes in reality also suggests us that we should consider more variables to separate them well. 
+
+```{r lda vis - FEI, echo=FALSE, fig.keep='all'}
 # Visualizing Data separation in True classification of test data
 prop.lda = lda.fei$svd^2/sum(lda.fei$svd^2)
 
@@ -134,7 +150,6 @@ t.lda <- ggplot(dataset) + geom_point(aes(lda.LD1, lda.LD2, colour = Order), siz
 
 print(t.lda)
 
-
 # Visualizing Data separation in Prediction Results of test data 
 plot.lda = data.frame(Pclass=lda.predict$class,lda=lda.predict$x)
 p.lda <- ggplot(plot.lda)+ geom_point(aes(lda.LD1,lda.LD2,colour=Pclass),size=1) +
@@ -143,12 +158,12 @@ p.lda <- ggplot(plot.lda)+ geom_point(aes(lda.LD1,lda.LD2,colour=Pclass),size=1)
 print(p.lda)
 
 
-## MER: are LD1 and LD2 Sand + Clay? Fei: No, they are first component and second component 
+
 
 
 ```
 
-##Linear Discriminant Analysis (LDA) of reduced dataset (with dimension reduction from PCA)
+### Reduced-Dimension Dataset
 We also conducted the same LDA method on the dimension-reduced database. However, the result is less satisfying than using the original database. The prediction accuracy here is about 54%, less than 58% of the original database. The plot below shows the difference between the true and predicted classes. Again, the overlap in the true class plots indicate the difficulty to classify those samples. 
 
 
@@ -169,11 +184,10 @@ lda.predict.pca = predict(lda.fei.pca, newdata=test.pca)
 
 # Assess the accuracy of the prediction for each soil class (Order) in test data
 ct.lda.pca <- table(test.pca$Order, lda.predict.pca$class)
-diag(prop.table(ct.lda.pca, 1))
 
 
 # total accuracy of the prediction
-sum(diag(prop.table(ct.lda.pca)))
+# sum(diag(prop.table(ct.lda.pca)))
 
 # Visualizing Data separation in True classification of test data
 prop.lda.pca = lda.fei.pca$svd^2/sum(lda.fei.pca$svd^2)
@@ -198,11 +212,24 @@ print(p.lda.pca)
 
 ```
 
+In the table below we can see the prediciton accuracy for each soil Order. We can see that for most, but not all, individual soil orders the LDA method applied to a full-dimension dataset provides the highest percent prediciton accuracy. 
+
+```{r comparing predictions by order, include=FALSE}
+aa <- diag(prop.table(ct.lda, 1))
+bb <- diag(prop.table(ct.lda.pca, 1))
+
+lda.compare <- as.data.frame(rbind(aa, bb)) %>% set_rownames(c("LDA", "LDA w/ PCA"))
 
 
-## Quadratic Discriminant Analysis (QDA) of original dataset and dimension-reduced dataset
 
-We used the same original and dimension-reduced dataset to apply QDA method. The prediction accuracy of QDA is very similar to LDA. For the original dataset, the overall accuracy is also 58%. When applying the same method to the dimension-reduced dataset, the oveall accuracy decreases to 54%. 
+
+
+knitr::kable((round(lda.compare, 2)) * 100)
+
+```
+
+
+## Quadratic Discriminant Analysis (QDA) 
 
 ```{r QDA without PCA- Fei, echo =F}
 
@@ -219,20 +246,17 @@ qda.predict = predict(qda.fei, newdata=test)
 
 # Assess the accuracy of the prediction for each soil class (Order) in test data
 ct.qda <- table(test$Order, qda.predict$class)
-diag(prop.table(ct.qda, 1))
+cc <- diag(prop.table(ct.qda, 1))
 
 
 # total accuracy of the prediction
-sum(diag(prop.table(ct.qda)))
+# sum(diag(prop.table(ct.qda)))
 
 
 # plot results # 
 # partimat(Order ~., data = project1data,metod='qda') figures are too large and took forever to show up. 
 
 ```
-
-
-
 
 
 ```{r QDA with PCA - Fei, echo =F}
@@ -250,20 +274,29 @@ qda.predict.pca = predict(qda.fei.pca, newdata=test.pca)
 
 # Assess the accuracy of the prediction percent correct for each soil class (Order) in test data
 ct.qda.pca <- table(test.pca$Order, qda.predict.pca$class)
-diag(prop.table(ct.qda.pca, 1))
+dd <- diag(prop.table(ct.qda.pca, 1))
 
 
 # total accuracy of the prediction
-sum(diag(prop.table(ct.qda.pca)))
+# sum(diag(prop.table(ct.qda.pca)))
 
 # plot results # 
-partimat(Order ~., data =  project1data.new[train_id,],metod='qda') # figures are too large and took forever to show up. 
+# partimat(Order ~., data =  project1data.new[train_id,],metod='qda') # figures are too large and took forever to show up. 
+```
+We used the same original and dimension-reduced dataset to apply QDA method. The prediction accuracy of QDA is very similar to LDA. For the original dataset, the overall accuracy is `r round(sum(diag(prop.table(ct.qda))), 2) * 100`%. When applying the same method to the dimension-reduced dataset, the oveall accuracy decreases to `r round(sum(diag(prop.table(ct.qda.pca))), 2) * 100`%. 
+
+```{r table qda, echo=FALSE}
+
+qda.compare <- as.data.frame(rbind(cc, dd)) %>% set_rownames(c("QDA", "QDA w/ PCA"))
+
+knitr::kable(round(qda.compare, 2) * 100)
 
 ```
 
 
-
 ##Multinomial Logistic Regression
+
+ 
 
 ```{r Log Regression - Mer, echo = F, results = 'hide'}
 
@@ -271,77 +304,6 @@ partimat(Order ~., data =  project1data.new[train_id,],metod='qda') # figures ar
 logr_train <- caret::createDataPartition(y=project1data$Order, p=0.8,list = FALSE)
 train <- project1data[logr_train,]
 test <- project1data[-logr_train,]
-
-#doing logistic regression
-
-# mylogr <- function(y, x, maxit = 100, tol = 1e-5) {
-#   y <- as.numeric(y) - 1
-#   X <- as.matrix(cbind(1, x))      # add the intercept term to the predictors
-#   
-#   # constants
-#   N <- length(y)        # number of observations
-#   p <- ncol(X)          # number of predictors
-#   continue <- T
-#   i <- 1
-#   
-#   betas <- matrix(0, nrow = maxit, ncol = p)
-#   
-#   #below is from PseudoCode - slide 21 on log reg lecture
-#   while(continue && i < maxit) {
-#     beta <- betas[i, ]
-#     p <- exp(X %*% beta)/(1 + exp(X %*% beta))
-#     W <- diag(as.vector(p * (1-p)))
-#     z <- X %*% beta + solve(W) %*% (y - p)
-#     betas[i+1, ] <- solve(t(X) %*% W %*% X) %*% t(X) %*% W %*% z
-#     if(all(abs(betas[i + 1, ] - betas[i, ])/abs(betas[i, ]) < tol)) {
-#       continue <- F
-#     }
-#     i <- i + 1
-#   }
-#   
-#   return(betas[i, ])
-#   
-# }
-
-
-#cross validation
-# mylogr.cv <- function(y, x, k, maxit = 100, tol = 1e-5) {
-#   
-#   cvs <- rep(0, k)
-#   
-#   # constants
-#   N <- length(y)        # number of observations
-#   
-#   # assign indices for which group each observation belongs to
-#   kappa <- sample(rep(1:k, length = N))
-#   
-#   for(i in 1:k) {
-#     y.tr <- y[kappa != i]     # training responses; all but ith group
-#     x.tr <- x[kappa != i, ]   # training predictors; all but ith group
-#     y.va <- y[kappa == i]     # validation responses; ith group
-#     x.va <- x[kappa == i, ]   # validation predictors; ith group
-#     
-#     beta <- mylogr(y.tr, x.tr, maxit, tol)
-#     
-#     X.va <- as.matrix(cbind(1, x.va))
-#     
-#     prediction <- rep(NA, length(y.va))
-#     for(j in 1:length(prediction)) {
-#       prediction[j] <- round(1/(1+exp(-t(beta) %*% X.va[j, ])))
-#     }
-#     cvs[i] <- sum((prediction - (as.numeric(y.va)-1))^2)
-#   }
-#   
-#   return(sum(cvs)/N)
-#   
-# }
-
-# system.time(cv.err.logr <- mylogr.cv(data$class, data[ ,-10], 10))
-  
-  
-#below doesn't seem to work - W becomes singular
-# logr.mer <- mylogr(y = train[1:100, 9] , x = train[1:100,-9])
-
 
 logr.mer <- nnet::multinom(Order ~ ., data = project1data, subset = logr_train)
 summary(logr.mer)
@@ -352,9 +314,9 @@ ct.logr <- table(test$Order, logr.predict)
 
 
  
-PCA <- princomp(project1data[, -9] ,cor="False")
-summary(PCA)  
-biplot(PCA)
+# PCA <- princomp(project1data[, -9] ,cor="False")
+# summary(PCA)  
+# biplot(PCA)
 
 #post-PCA Only retain first three variables
 # PCA.data <- project1data[, -c(5:8)]
@@ -370,25 +332,37 @@ ct.logr.PCA <- table(test.pca$Order, logr.PCA.predict)
 
 
 #mult log reg
+
 correct.logr.PCA <- diag(prop.table(ct.logr.PCA, 1))
 # total percent correct
 tot.correct.logr.PCA <- sum(diag(prop.table(ct.logr.PCA)))
 
 round(correct.logr.PCA, 2)
 round(tot.correct.logr.PCA, 2)
+
+#mult log reg
+correct.logr <- diag(prop.table(ct.logr, 1))
+# total percent correct
+tot.correct.logr <- sum(diag(prop.table(ct.logr)))
+```
+Recall that the response variable for these data is an independent 9-level categorical response. With this response variable in mind, we used the same original and dimension-reduced dataset to apply Multinomial Logistic Regression method. The prediction accuracy again is similar to LDA and QDA, albeit with a slight improvement. For the original dataset, the overall accuracy is `r round(sum(diag(prop.table(ct.logr))), 2) * 100`%. When applying the same method to the dimension-reduced dataset, the oveall accuracy decreases to `r round(sum(diag(prop.table(ct.logr.PCA))), 2) * 100`%.
+
+```{r logr kable, echo=FALSE}
+
+logr.compare <- as.data.frame(rbind(correct.logr, correct.logr.PCA)) %>% set_rownames(c("MLR", "MLR w/ PCA"))
+
+knitr::kable(round(logr.compare, 2) * 100)
 ```
 
 
 
 #Results
 
-The results from these three approaches show that...
-
-
 In order to compare the reults it is important to recall the diffences between these three classification approaches. The difference between LDA and logistic regression is that linear coefficients are estimated differently. MLE for logistic models and estimated mean and variance based on Gaussian assumptions for the LDA. LDA makes more restrictive Gaussian assumptions and therefore often expected to work better than logistic models IF they are met. QDA serves as a compromise between non-parametric methods (not explored in this project) and the linear LDA and logistic regression approaches. Since QDA assumes a quadratic decision boundary, it can accurately model a wider range of problems than can the linear methods. QDA can perform better in the presence of a limited number of training observations because it does make some assumptions about the form of the decision boundary.
 
+The results from these three approaches show that the Multinomial Logistic Regression out performed both LDA and QDA. This is likely due to not meeting the LDA's normality assumption in addition to having a very large dataset for testing/training. 
 
-```{r Model Comparison - Mer, echo = F, warning = F, message = F, results = F}
+```{r Model Comparison - Mer, echo = F, warning = F}
 #lda
 correct.lda <- diag(prop.table(ct.lda, 1))
 # total percent correct
@@ -411,11 +385,13 @@ model_comparison <- bind_rows(correct.lda, correct.qda, correct.logr)
 
 model_comparison <- model_comparison %>%
                     mutate(Overall = c(totcorrect.lda, 0.58, tot.correct.logr)) %>% 
-  set_rownames(c("LDA", "QDA", "Mult Log Reg"))
+  set_rownames(c("LDA", "QDA", "MLR"))
 
 knitr::kable(round(model_comparison, digits = 2))
 
 ```
 
 #Contributions
+
+The different tasks required to complete this project were equally divided between Meridith and Fei. LDA and QDA analyses were completed by Fei while Meridith was responsible for MLR and model comparisons. Both members of this group contributed to the presentation slides and this report. 
   

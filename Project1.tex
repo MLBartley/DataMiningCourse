@@ -28,6 +28,7 @@
             pdfborder={0 0 0},
             breaklinks=true}
 \urlstyle{same}  % don't use monospace font for urls
+\usepackage{longtable,booktabs}
 \usepackage{graphicx,grffile}
 \makeatletter
 \def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
@@ -86,19 +87,22 @@
 
 \section{Introduction}\label{introduction}
 
-This is Project 1 for STAT 557 2018 Spring by Meridith Bartley and Fei.
-The aim of this project is to practice linear classification methods and
-QDA and study basic techniques of dimension reduction.In this project we
-(1) apply LDA, QDA, and multinomial logistic regression to soil sample
-data in order to calssify into separate soil group (Orders).
+This is Project 1 for STAT 557 2018 Spring by Meridith Bartley and Fei
+Jiang. The aim of this project is to practice discriminant analysis and
+logistic regression and study basic techniques of dimension reduction.
+In this project we applied Linear Discriminant Analysis (LDA), Quadratic
+Discriminant Analysis (QDA), and multinomial logistic regression to soil
+sample data in order to classify into separate soil group (Orders).
 
 \section{Description of Data}\label{description-of-data}
 
-This is Fei's research data. It's about soil sample data over the US
-downloaded from NRCS, including the physical and chemical properties of
-soil samples (sand, silt, clay, oganic carbon, bulk density, CEC soil,
-CEC clay, base satuaration, and pH) and the corresponding soil
-classification group (soil order).
+This dataset contains soil sample data over the US downloaded from
+Natural Resources Conservation Service (NRCS). After removing the
+incomplete data records and excluding the data records with impossible
+values, there are around 14,000 records left, each of which includes
+physical and chemical properties of soil samples (sand, silt, clay,
+organic carbon, bulk density, CEC soil, CEC clay, base saturation, and
+pH) and the corresponding soil classification group (soil order).
 
 Boxplots for each physical and chemical property used as explanitory
 variables in the subsequent classification models are included below.
@@ -110,31 +114,129 @@ differ significantly between soil Orders.
 
 \includegraphics{Project1_files/figure-latex/EDA - Mer-1.pdf}
 \includegraphics{Project1_files/figure-latex/EDA - Mer-2.pdf}
-\includegraphics{Project1_files/figure-latex/EDA - Mer-3.pdf}
-\includegraphics{Project1_files/figure-latex/EDA - Mer-4.pdf}
-\includegraphics{Project1_files/figure-latex/EDA - Mer-5.pdf}
-\includegraphics{Project1_files/figure-latex/EDA - Mer-6.pdf}
-\includegraphics{Project1_files/figure-latex/EDA - Mer-7.pdf}
-\includegraphics{Project1_files/figure-latex/EDA - Mer-8.pdf}
-\includegraphics{Project1_files/figure-latex/EDA - Mer-9.pdf}
+
+\section{Principle Component
+Analysis}\label{principle-component-analysis}
+
+In order to test whether dimension reduction will improve predictions we
+also conducted Principle Component Analysis on the original dataset to
+get a new dataset with fewer dimensions. According to our PCA results,
+the first four component in total can explain about 99.8\% of variance
+of the original database. The coefficients of the relevent componets are
+listed in the table below. Therefore, we took the first four components
+and the soil order value to build a new dataset with less dimensions.
+
+\begin{longtable}[]{@{}lrrrr@{}}
+\toprule
+& PC1 & PC2 & PC3 & PC4\tabularnewline
+\midrule
+\endhead
+Sand & 0.3516041 & 0.7770568 & -0.5154614 & 0.0820792\tabularnewline
+Clay & -0.2421961 & -0.3976529 & -0.6759072 & 0.5665441\tabularnewline
+Organic.Carbon & 0.0053164 & -0.0050832 & -0.0168647 &
+-0.0577142\tabularnewline
+Bulk.Density & -0.0019288 & 0.0000607 & -0.0029836 &
+0.0104239\tabularnewline
+CEC.Soil & -0.1781833 & -0.1804817 & -0.5190661 &
+-0.8044793\tabularnewline
+CEC.Clay & 0.0112285 & 0.0059963 & -0.0252571 &
+-0.1423157\tabularnewline
+Base.Saturation & -0.8859172 & 0.4526640 & 0.0839830 &
+0.0374301\tabularnewline
+pH & -0.0309674 & 0.0226877 & 0.0059155 & -0.0030852\tabularnewline
+\bottomrule
+\end{longtable}
 
 \section{Analysis}\label{analysis}
+
+In the following analysis with three methods (LDA, QDA and logistic) and
+two datasets (original and dimension-reduced), we randomly selected 80\%
+of the entire data as training data and the rest 20\% as test data.
 
 \subsection{Linear Discriminant Analysis
 (LDA)}\label{linear-discriminant-analysis-lda}
 
-\includegraphics{Project1_files/figure-latex/LDA - Fei-1.pdf}
-\includegraphics{Project1_files/figure-latex/LDA - Fei-2.pdf}
+\subsubsection{Original Dataset}\label{original-dataset}
 
-\subsection{Quadratic Discriminant
-Analysis}\label{quadratic-discriminant-analysis}
+We initially conducted the LDA on the original dataset and found that
+the overall prediction accuracy of our model in testing data is about
+58\%. Considering we have in total 9 possible classes, the accuracy rate
+is fairly good.
+
+In the follow plots, we shows the differenced between the true and
+predicted classes (top and bottom plots, respectively). It can be seen
+that in the left part of the true class, there is a lot of overlap and
+in the middle part, there is some overlap. But in the prediction plot,
+different classes separate pretty well from each other, which indicates
+that our model seperate the classes more than it should be. This overlap
+between classes in reality also suggests us that we should consider more
+variables to separate them well.
+
+\includegraphics{Project1_files/figure-latex/lda vis - FEI-1.pdf}
+\includegraphics{Project1_files/figure-latex/lda vis - FEI-2.pdf}
+
+\subsubsection{Reduced-Dimension
+Dataset}\label{reduced-dimension-dataset}
+
+We also conducted the same LDA method on the dimension-reduced database.
+However, the result is less satisfying than using the original database.
+The prediction accuracy here is about 54\%, less than 58\% of the
+original database. The plot below shows the difference between the true
+and predicted classes. Again, the overlap in the true class plots
+indicate the difficulty to classify those samples.
+
+\includegraphics{Project1_files/figure-latex/LDA with PCA - Fei-1.pdf}
+\includegraphics{Project1_files/figure-latex/LDA with PCA - Fei-2.pdf}
+
+In the table below we can see the prediciton accuracy for each soil
+Order. We can see that for most, but not all, individual soil orders the
+LDA method applied to a full-dimension dataset provides the highest
+percent prediciton accuracy.
+
+\subsection{Quadratic Discriminant Analysis
+(QDA)}\label{quadratic-discriminant-analysis-qda}
+
+We used the same original and dimension-reduced dataset to apply QDA
+method. The prediction accuracy of QDA is very similar to LDA. For the
+original dataset, the overall accuracy is 59\%. When applying the same
+method to the dimension-reduced dataset, the oveall accuracy decreases
+to 57\%.
+
+\begin{longtable}[]{@{}lrrrrrrrrr@{}}
+\toprule
+& Alfisols & Andisols & Aridisols & Inceptisols & Mollisols & Oxisols &
+Spodosols & Ultisols & Vertisols\tabularnewline
+\midrule
+\endhead
+QDA & 74 & 38 & 59 & 20 & 49 & 82 & 49 & 86 & 68\tabularnewline
+QDA w/ PCA & 56 & 27 & 69 & 9 & 59 & 35 & 60 & 83 & 58\tabularnewline
+\bottomrule
+\end{longtable}
 
 \subsection{Multinomial Logistic
 Regression}\label{multinomial-logistic-regression}
 
-\section{Results}\label{results}
+Recall that the response variable for these data is an independent
+9-level categorical response. With this response variable in mind, we
+used the same original and dimension-reduced dataset to apply
+Multinomial Logistic Regression method. The prediction accuracy again is
+similar to LDA and QDA, albeit with a slight improvement. For the
+original dataset, the overall accuracy is 61\%. When applying the same
+method to the dimension-reduced dataset, the oveall accuracy decreases
+to 58\%.
 
-The results from these three approaches show that\ldots{}
+\begin{longtable}[]{@{}lrrrrrrrrr@{}}
+\toprule
+& Alfisols & Andisols & Aridisols & Inceptisols & Mollisols & Oxisols &
+Spodosols & Ultisols & Vertisols\tabularnewline
+\midrule
+\endhead
+MLR & 68 & 42 & 59 & 25 & 64 & 59 & 53 & 76 & 58\tabularnewline
+MLR w/ PCA & 64 & 36 & 53 & 10 & 70 & 24 & 63 & 78 & 32\tabularnewline
+\bottomrule
+\end{longtable}
+
+\section{Results}\label{results}
 
 In order to compare the reults it is important to recall the diffences
 between these three classification approaches. The difference between
@@ -150,7 +252,33 @@ than can the linear methods. QDA can perform better in the presence of a
 limited number of training observations because it does make some
 assumptions about the form of the decision boundary.
 
+The results from these three approaches show that the Multinomial
+Logistic Regression out performed both LDA and QDA. This is likely due
+to not meeting the LDA's normality assumption in addition to having a
+very large dataset for testing/training.
+
+\begin{longtable}[]{@{}lrrrrrrrrrr@{}}
+\toprule
+& Alfisols & Andisols & Aridisols & Inceptisols & Mollisols & Oxisols &
+Spodosols & Ultisols & Vertisols & Overall\tabularnewline
+\midrule
+\endhead
+LDA & 0.65 & 0.45 & 0.58 & 0.12 & 0.65 & 0.59 & 0.35 & 0.81 & 0.56 &
+0.60\tabularnewline
+QDA & 0.74 & 0.38 & 0.59 & 0.20 & 0.49 & 0.82 & 0.49 & 0.86 & 0.68 &
+0.58\tabularnewline
+MLR & 0.68 & 0.42 & 0.59 & 0.25 & 0.64 & 0.59 & 0.53 & 0.76 & 0.58 &
+0.61\tabularnewline
+\bottomrule
+\end{longtable}
+
 \section{Contributions}\label{contributions}
+
+The different tasks required to complete this project were equally
+divided between Meridith and Fei. LDA and QDA analyses were completed by
+Fei while Meridith was responsible for MLR and model comparisons. Both
+members of this group contributed to the presentation slides and this
+report.
 
 
 \end{document}
