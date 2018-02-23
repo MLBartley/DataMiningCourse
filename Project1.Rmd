@@ -1,11 +1,11 @@
 ---
 title: "Project 1"
 output:
+  word_document: default
   pdf_document:
     keep_tex: yes
     latex_engine: xelatex
   html_notebook: default
-  word_document: default
 ---
 
 
@@ -84,7 +84,8 @@ summary.pca = summary(pca)
 # print(summary.pca)
 project1data.new = data.frame(pca=pca$x[,1:4],Order=project1data$Order) #First 4 components explained 99.8% of the variance in the original dataset
 
-#table of the coefficients
+#table of the variance and coefficients
+knitr::kable(summary.pca$importance)
 knitr::kable(pca$rotation[, 1:4])
 
 
@@ -99,7 +100,6 @@ In the following analysis with three methods (LDA, QDA and logistic) and two dat
 ##Linear Discriminant Analysis (LDA) 
 
 ###Original Dataset
-We initially conducted the LDA on the original dataset and found that the overall prediction accuracy of our model in testing data is about 58%. Considering we have in total 9 possible classes, the accuracy rate is fairly good.  
 
 ```{r include=FALSE}
 
@@ -132,9 +132,9 @@ ct.lda <- table(test$Order, lda.predict$class)
 # sum(diag(prop.table(ct.lda)))
 
 ```
+We initially conducted the LDA on the original dataset and found that the overall prediction accuracy of our model in testing data is about `r round(sum(diag(prop.table(ct.lda))), 2) * 100`%. Considering we have in total 9 possible classes, the accuracy rate is fairly good.  
 
-
-In the follow plots, we shows the differenced between the true and predicted classes (top and bottom plots, respectively). It can be seen that in the left part of the true class, there is a lot of overlap and in the middle part, there is some overlap. But in the prediction plot, different classes separate pretty well from each other, which indicates that our model seperate the classes more than it should be. This overlap between classes in reality also suggests us that we should consider more variables to separate them well. 
+In the follow plots, we show the difference between the true and predicted classes (top and bottom plots, respectively). It can be seen that in the left part of the true class, there is a lot of overlap and in the middle part, there is some overlap. But in the prediction plot, different classes separate pretty well from each other, which indicates that our model seperate the classes more than it should be. This overlap between classes in reality also suggests us that we should consider more variables to separate them well. 
 
 ```{r lda vis - FEI, echo=FALSE, fig.keep='all'}
 # Visualizing Data separation in True classification of test data
@@ -164,13 +164,7 @@ print(p.lda)
 ```
 
 ### Reduced-Dimension Dataset
-We also conducted the same LDA method on the dimension-reduced database. However, the result is less satisfying than using the original database. The prediction accuracy here is about 54%, less than 58% of the original database. The plot below shows the difference between the true and predicted classes. Again, the overlap in the true class plots indicate the difficulty to classify those samples. 
-
-
-```{r LDA with PCA - Fei, echo=FALSE, fig.keep = 'all'}
-#data partition
-#lda_train <- caret::createDataPartition(y=project1data.new$Order, p=0.8,list = FALSE)
-#train.pca <- project1data.new[lda_train,]
+```{r}
 test.pca <- project1data.new[-train_id,]
 
 #lda
@@ -185,6 +179,16 @@ lda.predict.pca = predict(lda.fei.pca, newdata=test.pca)
 # Assess the accuracy of the prediction for each soil class (Order) in test data
 ct.lda.pca <- table(test.pca$Order, lda.predict.pca$class)
 
+
+```
+
+We also conducted the same LDA method on the dimension-reduced database. However, the result is less satisfying than using the original database. The prediction accuracy here is about `r round(sum(diag(prop.table(ct.lda.pca))), 2) * 100`%, less than `r round(sum(diag(prop.table(ct.lda))), 2) * 100`% of the original database. The plot below shows the difference between the true and predicted classes. Again, the overlap in the true class plots indicate the difficulty to classify those samples. 
+
+
+```{r LDA with PCA - Fei, echo=FALSE, fig.keep = 'all'}
+#data partition
+#lda_train <- caret::createDataPartition(y=project1data.new$Order, p=0.8,list = FALSE)
+#train.pca <- project1data.new[lda_train,]
 
 # total accuracy of the prediction
 # sum(diag(prop.table(ct.lda.pca)))
@@ -211,6 +215,7 @@ p.lda.pca <- ggplot(plot.lda.pca)+ geom_point(aes(lda.LD1,lda.LD2,colour=Pclass)
 print(p.lda.pca)
 
 ```
+
 
 In the table below we can see the prediciton accuracy for each soil Order. We can see that for most, but not all, individual soil orders the LDA method applied to a full-dimension dataset provides the highest percent prediciton accuracy. 
 
@@ -363,7 +368,7 @@ In order to compare the reults it is important to recall the diffences between t
 The results from these three approaches show that the Multinomial Logistic Regression out performed both LDA and QDA. This is likely due to not meeting the LDA's normality assumption in addition to having a very large dataset for testing/training. 
 
 ```{r Model Comparison - Mer, echo = F, warning = F}
-#lda
+#lda 
 correct.lda <- diag(prop.table(ct.lda, 1))
 # total percent correct
 totcorrect.lda <- sum(diag(prop.table(ct.lda)))
