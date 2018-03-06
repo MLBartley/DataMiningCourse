@@ -22,6 +22,8 @@ library(ggplot2)
 library(grid)
 library(gridExtra)
 library(magrittr)
+library(cluster)
+library(fpc)
 ```
 
 
@@ -42,6 +44,12 @@ project2data <- project2data %>%
                                                   rep("canadian", 70)))
 #shuffle rows
 project2data <- project2data[sample(nrow(project2data),nrow(project2data)),] 
+
+
+#rows with NA
+na.idx = which(is.na(apply(project2data[, -8], 1, sum)))
+project2data <- project2data[-na.idx, ]
+
 ```
 
 ## Exploritory Data Analysis
@@ -63,4 +71,42 @@ ggplot(aes_string("type",varName)) + geom_boxplot() +
 grid.arrange(grobs = lapply(varlist[1:4],customPlot))
 grid.arrange(grobs = lapply(varlist[5:7],customPlot), ncol = 2)
 
+
+
 ```
+
+#K-Means Algorithm
+
+```{r}
+km <- kmeans(project2data[, -8], 3)
+
+knitr::kable(table(data.frame(project2data$type, km$cluster)))
+
+plotcluster(project2data[, -8], km$cluster)
+
+clusplot(project2data[, -8], km$cluster, color=TRUE, shade=TRUE, 
+         labels=2, lines=0)
+
+with(project2data[, -8], pairs(project2data[, -8], col=c(1:3)[km$cluster])) 
+
+
+```
+
+
+```{r}
+
+
+
+WSS. <- sapply(1:15, function(i){return(kmeans(project2data[-na.idx, -8], centers = i)$tot.withinss)})
+cbind(No.of.Cluters=1:15, WSS.)
+
+plot(1:15, WSS., type="l", xlab = "No. of clusters", ylab = "Total WSS", main = "Scree Plot")
+
+```
+
+
+
+
+<!-- USEFUL LINKS
+http://cowlet.org/2013/12/23/understanding-data-science-clustering-with-k-means-in-r.html 
+-->
