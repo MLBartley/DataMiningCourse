@@ -126,24 +126,37 @@ of the original database. The coefficients of the relevent componets are
 listed in the table below. Therefore, we took the first four components
 and the soil order value to build a new dataset with less dimensions.
 
+\begin{longtable}[]{@{}lrrrrrrrr@{}}
+\toprule
+& PC1 & PC2 & PC3 & PC4 & PC5 & PC6 & PC7 & PC8\tabularnewline
+\midrule
+\endhead
+Standard deviation & 32.63819 & 25.63283 & 11.00003 & 8.588096 &
+1.538774 & 0.7446948 & 0.6472851 & 0.1861136\tabularnewline
+Proportion of Variance & 0.55470 & 0.34213 & 0.06301 & 0.038410 &
+0.001230 & 0.0002900 & 0.0002200 & 0.0000200\tabularnewline
+Cumulative Proportion & 0.55470 & 0.89683 & 0.95984 & 0.998240 &
+0.999480 & 0.9997600 & 0.9999800 & 1.0000000\tabularnewline
+\bottomrule
+\end{longtable}
+
 \begin{longtable}[]{@{}lrrrr@{}}
 \toprule
 & PC1 & PC2 & PC3 & PC4\tabularnewline
 \midrule
 \endhead
-Sand & 0.3516041 & 0.7770568 & -0.5154614 & 0.0820792\tabularnewline
-Clay & -0.2421961 & -0.3976529 & -0.6759072 & 0.5665441\tabularnewline
+Sand & 0.3516041 & 0.7770568 & -0.5154614 & -0.0820792\tabularnewline
+Clay & -0.2421961 & -0.3976529 & -0.6759072 & -0.5665441\tabularnewline
 Organic.Carbon & 0.0053164 & -0.0050832 & -0.0168647 &
--0.0577142\tabularnewline
+0.0577142\tabularnewline
 Bulk.Density & -0.0019288 & 0.0000607 & -0.0029836 &
-0.0104239\tabularnewline
+-0.0104239\tabularnewline
 CEC.Soil & -0.1781833 & -0.1804817 & -0.5190661 &
--0.8044793\tabularnewline
-CEC.Clay & 0.0112285 & 0.0059963 & -0.0252571 &
--0.1423157\tabularnewline
+0.8044793\tabularnewline
+CEC.Clay & 0.0112285 & 0.0059963 & -0.0252571 & 0.1423157\tabularnewline
 Base.Saturation & -0.8859172 & 0.4526640 & 0.0839830 &
-0.0374301\tabularnewline
-pH & -0.0309674 & 0.0226877 & 0.0059155 & -0.0030852\tabularnewline
+-0.0374301\tabularnewline
+pH & -0.0309674 & 0.0226877 & 0.0059155 & 0.0030852\tabularnewline
 \bottomrule
 \end{longtable}
 
@@ -160,10 +173,10 @@ of the entire data as training data and the rest 20\% as test data.
 
 We initially conducted the LDA on the original dataset and found that
 the overall prediction accuracy of our model in testing data is about
-58\%. Considering we have in total 9 possible classes, the accuracy rate
+57\%. Considering we have in total 9 possible classes, the accuracy rate
 is fairly good.
 
-In the follow plots, we shows the differenced between the true and
+In the follow plots, we show the difference between the true and
 predicted classes (top and bottom plots, respectively). It can be seen
 that in the left part of the true class, there is a lot of overlap and
 in the middle part, there is some overlap. But in the prediction plot,
@@ -180,7 +193,7 @@ Dataset}\label{reduced-dimension-dataset}
 
 We also conducted the same LDA method on the dimension-reduced database.
 However, the result is less satisfying than using the original database.
-The prediction accuracy here is about 54\%, less than 58\% of the
+The prediction accuracy here is about 53\%, less than 57\% of the
 original database. The plot below shows the difference between the true
 and predicted classes. Again, the overlap in the true class plots
 indicate the difficulty to classify those samples.
@@ -193,14 +206,25 @@ Order. We can see that for most, but not all, individual soil orders the
 LDA method applied to a full-dimension dataset provides the highest
 percent prediciton accuracy.
 
+\begin{longtable}[]{@{}lrrrrrrrrr@{}}
+\toprule
+& Alfisols & Andisols & Aridisols & Inceptisols & Mollisols & Oxisols &
+Spodosols & Ultisols & Vertisols\tabularnewline
+\midrule
+\endhead
+LDA & 61 & 57 & 54 & 10 & 64 & 76 & 27 & 76 & 55\tabularnewline
+LDA w/ PCA & 48 & 41 & 43 & 11 & 71 & 41 & 47 & 78 & 42\tabularnewline
+\bottomrule
+\end{longtable}
+
 \subsection{Quadratic Discriminant Analysis
 (QDA)}\label{quadratic-discriminant-analysis-qda}
 
 We used the same original and dimension-reduced dataset to apply QDA
 method. The prediction accuracy of QDA is very similar to LDA. For the
-original dataset, the overall accuracy is 59\%. When applying the same
+original dataset, the overall accuracy is 56\%. When applying the same
 method to the dimension-reduced dataset, the oveall accuracy decreases
-to 57\%.
+to 53\%.
 
 \begin{longtable}[]{@{}lrrrrrrrrr@{}}
 \toprule
@@ -208,8 +232,8 @@ to 57\%.
 Spodosols & Ultisols & Vertisols\tabularnewline
 \midrule
 \endhead
-QDA & 74 & 38 & 59 & 20 & 49 & 82 & 49 & 86 & 68\tabularnewline
-QDA w/ PCA & 56 & 27 & 69 & 9 & 59 & 35 & 60 & 83 & 58\tabularnewline
+QDA & 71 & 39 & 51 & 22 & 49 & 65 & 42 & 78 & 64\tabularnewline
+QDA w/ PCA & 50 & 35 & 70 & 8 & 53 & 35 & 50 & 80 & 62\tabularnewline
 \bottomrule
 \end{longtable}
 
@@ -221,9 +245,9 @@ Recall that the response variable for these data is an independent
 used the same original and dimension-reduced dataset to apply
 Multinomial Logistic Regression method. The prediction accuracy again is
 similar to LDA and QDA, albeit with a slight improvement. For the
-original dataset, the overall accuracy is 61\%. When applying the same
+original dataset, the overall accuracy is 62\%. When applying the same
 method to the dimension-reduced dataset, the oveall accuracy decreases
-to 58\%.
+to 55\%.
 
 \begin{longtable}[]{@{}lrrrrrrrrr@{}}
 \toprule
@@ -231,8 +255,8 @@ to 58\%.
 Spodosols & Ultisols & Vertisols\tabularnewline
 \midrule
 \endhead
-MLR & 68 & 42 & 59 & 25 & 64 & 59 & 53 & 76 & 58\tabularnewline
-MLR w/ PCA & 64 & 36 & 53 & 10 & 70 & 24 & 63 & 78 & 32\tabularnewline
+MLR & 69 & 55 & 57 & 18 & 67 & 41 & 57 & 78 & 58\tabularnewline
+MLR w/ PCA & 58 & 41 & 51 & 10 & 65 & 18 & 52 & 74 & 36\tabularnewline
 \bottomrule
 \end{longtable}
 
@@ -263,12 +287,12 @@ very large dataset for testing/training.
 Spodosols & Ultisols & Vertisols & Overall\tabularnewline
 \midrule
 \endhead
-LDA & 0.65 & 0.45 & 0.58 & 0.12 & 0.65 & 0.59 & 0.35 & 0.81 & 0.56 &
-0.60\tabularnewline
-QDA & 0.74 & 0.38 & 0.59 & 0.20 & 0.49 & 0.82 & 0.49 & 0.86 & 0.68 &
+LDA & 0.61 & 0.57 & 0.54 & 0.10 & 0.64 & 0.76 & 0.27 & 0.76 & 0.55 &
+0.57\tabularnewline
+QDA & 0.71 & 0.39 & 0.51 & 0.22 & 0.49 & 0.65 & 0.42 & 0.78 & 0.64 &
 0.58\tabularnewline
-MLR & 0.68 & 0.42 & 0.59 & 0.25 & 0.64 & 0.59 & 0.53 & 0.76 & 0.58 &
-0.61\tabularnewline
+MLR & 0.69 & 0.55 & 0.57 & 0.18 & 0.67 & 0.41 & 0.57 & 0.78 & 0.58 &
+0.62\tabularnewline
 \bottomrule
 \end{longtable}
 

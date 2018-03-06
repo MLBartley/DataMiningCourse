@@ -1,11 +1,11 @@
 ---
 title: "Project 1"
 output:
-  word_document: default
   pdf_document:
     keep_tex: yes
     latex_engine: xelatex
   html_notebook: default
+  word_document: default
 ---
 
 
@@ -164,7 +164,7 @@ print(p.lda)
 ```
 
 ### Reduced-Dimension Dataset
-```{r}
+```{r echo=FALSE}
 test.pca <- project1data.new[-train_id,]
 
 #lda
@@ -219,7 +219,7 @@ print(p.lda.pca)
 
 In the table below we can see the prediciton accuracy for each soil Order. We can see that for most, but not all, individual soil orders the LDA method applied to a full-dimension dataset provides the highest percent prediciton accuracy. 
 
-```{r comparing predictions by order, include=FALSE}
+```{r comparing predictions by order, echo=FALSE}
 aa <- diag(prop.table(ct.lda, 1))
 bb <- diag(prop.table(ct.lda.pca, 1))
 
