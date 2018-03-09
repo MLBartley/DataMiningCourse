@@ -16,6 +16,8 @@ This is Project 2 for STAT 557 2018 Spring by Meridith Bartley and Fei Jiang. Th
 
 The examined group comprised kernels belonging to three different varieties of wheat: Kama, Rosa and Canadian, 70 elements each, randomly selected for the experiment. High quality visualization of the internal kernel structure was detected using a soft X-ray technique. It is non-destructive and considerably cheaper than other more sophisticated imaging techniques like scanning microscopy or laser technology. The images were recorded on 13x18 cm X-ray KODAK plates. Studies were conducted using combine harvested wheat grain originating from experimental fields, explored at the Institute of Agrophysics of the Polish Academy of Sciences in Lublin. 
 
+Boxplots for each attribute used as explanitory variables in the subsequent classification models are included below. This EDA allows for early indication of which variables may possibly be ommitted during dimention reduction. That is, what properties do not differ significantly between seed types.
+
 ```{r packages to load, include=FALSE}
 library(dplyr)
 library(ggplot2)
@@ -71,13 +73,61 @@ ggplot(aes_string("type",varName)) + geom_boxplot() +
 grid.arrange(grobs = lapply(varlist[1:4],customPlot))
 grid.arrange(grobs = lapply(varlist[5:7],customPlot), ncol = 2)
 
+cor(project2data[, -8])
+pairs(project2data[, -8])
+
+```
+
+# Principle Component Analysis
+
+
+```{r - Fei PCA, echo=FALSE}
+
+# Create new dataset with PCA 
+pca = prcomp(project2data[,-8])
+# print(pca$rotation)
+summary.pca = summary(pca)
+var.percent = summary.pca$importance[3, 2] #first two components
+# print(summary.pca)
+project2data.new = data.frame(pca=pca$x[,1:4],Type=project2data$type) #First 4 components explained 99.8% of the variance in the original dataset
+```
+
+In order to test whether dimension reduction will improve predictions we also conducted Principle Component Analysis on the original dataset to get a new dataset with fewer dimensions. According to our PCA results, the first two component in total can explain about `r var.percent * 100`% of variance of the original database. The coefficients of the relevent componets are listed in the table below. Therefore, we took the first four components and the seed type values to build a new dataset with less dimensions.
+
+```{r - PCA tables, echo=FALSE}
+#table of the variance and coefficients
+knitr::kable(summary.pca$importance)
+knitr::kable(pca$rotation[, 1:2])
+
 
 
 ```
 
-#K-Means Algorithm
+#Analysis
 
-```{r}
+In the following analysis with two methods (k means and k-nearest neighbor algorithms - both supervised and unsupervised) and two datasets (original and dimension-reduced), we randomly selected 80% of the entire data as training data and the rest 20% as test data.   
+ 
+ 
+
+##K-Means Algorithm
+
+###Original Dataset
+
+```{r include=FALSE}
+
+#data partition
+train_id <- caret::createDataPartition(y=project2data$type, p=0.8,list = FALSE)
+
+
+p2d_test <- project2data[-train_id, -8]
+p2d_train <- project2data[train_id, -8]
+p2d_testlabels <- project2data[-train_id, 8]
+p2d_trainlabels <- project2data[train_id, 8]
+
+```
+
+
+```{r, echo =FALSE}
 km <- kmeans(project2data[, -8], 3)
 
 knitr::kable(table(data.frame(project2data$type, km$cluster)))
@@ -104,6 +154,11 @@ plot(1:15, WSS., type="l", xlab = "No. of clusters", ylab = "Total WSS", main = 
 
 ```
 
+## K-Nearest Neighbor
+
+```{r}
+knn <- knn(train = , test = , cl = , k = )
+```
 
 
 
