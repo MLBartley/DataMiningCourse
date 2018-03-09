@@ -108,5 +108,7 @@ plot(1:15, WSS., type="l", xlab = "No. of clusters", ylab = "Total WSS", main = 
 
 
 <!-- USEFUL LINKS
-http://cowlet.org/2013/12/23/understanding-data-science-clustering-with-k-means-in-r.html 
+http://cowlet.org/2013/12/23/understanding-data-science-clustering-with-k-means-in-r.html
+https://stats.stackexchange.com/questions/31083/how-to-produce-a-pretty-plot-of-the-results-of-k-means-cluster-analysis
+
 -->
