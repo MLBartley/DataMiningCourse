@@ -10,7 +10,7 @@ output:
 
 #Introduction
 
-This is Project 2 for STAT 557 2018 Spring by Meridith Bartley and Fei Jiang. The aim of this project is topractice the k-means algorithm and the k-nearest neighbor algorithm. In this project we applied {METHOD} to {WHAT TYPE} data in order to {ACHEIVE WHAT}. 
+This is Project 2 for STAT 557 2018 Spring by Meridith Bartley and Fei Jiang. The aim of this project is to practice the k-means algorithm and the k-nearest neighbor algorithm. In this project we applied {METHOD} to {WHAT TYPE} data in order to {ACHEIVE WHAT}. 
 
 #Description of Data
 
@@ -31,9 +31,11 @@ library(fpc)
 
 ```{r load code and clean, include=FALSE, echo = F, message = F}
 # Basic clearning of our dataset 
-project2data <- read_delim("seeds_dataset.txt", 
-     "\t", escape_double = FALSE, col_names = FALSE, 
-     trim_ws = TRUE)
+#project2data <- read.delim("seeds_dataset.txt", 
+#    "\t", escape.double = FALSE, col.names = FALSE, trim.ws = TRUE)
+
+project2data <- read.csv("seeds_dataset.csv", header=F) 
+
 
 #add column names and true seed types
 project2data <- project2data %>% 
@@ -49,8 +51,8 @@ project2data <- project2data[sample(nrow(project2data),nrow(project2data)),]
 
 
 #rows with NA
-na.idx = which(is.na(apply(project2data[, -8], 1, sum)))
-project2data <- project2data[-na.idx, ]
+#na.idx = which(is.na(apply(project2data[, -8], 1, sum)))
+#project2data <- project2data[-na.idx, ]
 
 ```
 
@@ -89,10 +91,10 @@ pca = prcomp(project2data[,-8])
 summary.pca = summary(pca)
 var.percent = summary.pca$importance[3, 2] #first two components
 # print(summary.pca)
-project2data.new = data.frame(pca=pca$x[,1:4],Type=project2data$type) #First 4 components explained 99.8% of the variance in the original dataset
+project2data.new = data.frame(pca=pca$x[,1:2],Type=project2data$type) #First 2 components explained 99.3% of the variance in the original dataset
 ```
 
-In order to test whether dimension reduction will improve predictions we also conducted Principle Component Analysis on the original dataset to get a new dataset with fewer dimensions. According to our PCA results, the first two component in total can explain about `r var.percent * 100`% of variance of the original database. The coefficients of the relevent componets are listed in the table below. Therefore, we took the first four components and the seed type values to build a new dataset with less dimensions.
+In order to test whether dimension reduction will improve predictions we also conducted Principle Component Analysis on the original dataset to get a new dataset with fewer dimensions. According to our PCA results, the first two component in total can explain about `r var.percent * 100`% of variance of the original database. The coefficients of the relevent componets are listed in the table below. Therefore, we took the first two components and the seed type values to build a new dataset with less dimensions.
 
 ```{r - PCA tables, echo=FALSE}
 #table of the variance and coefficients
@@ -109,7 +111,7 @@ In the following analysis with two methods (k means and k-nearest neighbor algor
  
  
 
-##K-Means Algorithm
+##K-Means Algorithm - Supervised clustering
 
 ###Original Dataset
 
@@ -154,7 +156,7 @@ plot(1:15, WSS., type="l", xlab = "No. of clusters", ylab = "Total WSS", main = 
 
 ```
 
-## K-Nearest Neighbor
+## K-Nearest Neighbor - Supervised clustering
 
 ```{r}
 knn <- knn(train = , test = , cl = , k = )
@@ -167,3 +169,38 @@ http://cowlet.org/2013/12/23/understanding-data-science-clustering-with-k-means-
 https://stats.stackexchange.com/questions/31083/how-to-produce-a-pretty-plot-of-the-results-of-k-means-cluster-analysis
 
 -->
+
+##K-Means Algorithm - Unsupervised clustering in Reduced dataset (first two Principal Components)
+
+```{r}
+firsttwo = project2data.new[, 1:2]
+
+unkmeans.2 <- kmeans(firsttwo, 2, nstart = 20)
+ggplot(firsttwo, aes(pca.PC1, pca.PC2, color = factor(unkmeans.2$cluster))) + geom_point()
+
+unkmeans.3 <- kmeans(firsttwo, 3, nstart = 20)
+ggplot(firsttwo, aes(pca.PC1, pca.PC2, color = factor(unkmeans.3$cluster))) + geom_point()
+
+unkmeans.4 <- kmeans(firsttwo, 4, nstart = 20)
+ggplot(firsttwo, aes(pca.PC1, pca.PC2, color = factor(unkmeans.4$cluster))) + geom_point()
+
+unkmeans.5 <- kmeans(firsttwo, 5, nstart = 20)
+ggplot(firsttwo, aes(pca.PC1, pca.PC2, color = factor(unkmeans.5$cluster))) + geom_point()
+
+unkmeans.6 <- kmeans(firsttwo, 6, nstart = 20)
+ggplot(firsttwo, aes(pca.PC1, pca.PC2, color = factor(unkmeans.6$cluster))) + geom_point()
+
+unkmeans.7 <- kmeans(firsttwo, 7, nstart = 20)
+ggplot(firsttwo, aes(pca.PC1, pca.PC2, color = factor(unkmeans.7$cluster))) + geom_point()
+
+unkmeans.8 <- kmeans(firsttwo, 8, nstart = 20)
+ggplot(firsttwo, aes(pca.PC1, pca.PC2, color = factor(unkmeans.8$cluster))) + geom_point()
+
+unkmeans.9 <- kmeans(firsttwo, 9, nstart = 20)
+ggplot(firsttwo, aes(pca.PC1, pca.PC2, color = factor(unkmeans.9$cluster))) + geom_point()
+
+unkmeans.10 <- kmeans(firsttwo, 10, nstart = 20)
+ggplot(firsttwo, aes(pca.PC1, pca.PC2, color = factor(unkmeans.10$cluster))) + geom_point()
+
+```
+
