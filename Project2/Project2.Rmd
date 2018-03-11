@@ -170,13 +170,47 @@ https://stats.stackexchange.com/questions/31083/how-to-produce-a-pretty-plot-of-
 
 -->
 
-##K-Means Algorithm - Unsupervised clustering in Reduced dataset (first two Principal Components)
+
+##K-Means and K-Centers Algorithm - Unsupervised clustering in Reduced Dataset (First two Principle Components)
+```{r - Kcenters define }
+
+
+
+
+
+```
 
 ```{r}
 firsttwo = project2data.new[, 1:2]
+par(mfrow=c(1,2))
+
+library(flexclust)
 
 unkmeans.2 <- kmeans(firsttwo, 2, nstart = 20)
 ggplot(firsttwo, aes(pca.PC1, pca.PC2, color = factor(unkmeans.2$cluster))) + geom_point()
+
+
+unkcenter.2 <- flexclust::kcca(firsttwo, k=2,save.data = T)
+
+#plot(firsttwo)
+image(unkcenter.2)
+points(firsttwo)
+
+data.frame(unkcenter.2)
+#unkcenter.2[xrange]
+
+#flexclust::pairs-methods(unkcenter.2)
+##barplot(unkcenter.2)
+ttt = flexclust::kcca2df(unkcenter.2)
+ttt1=ttt[c(1:210),]
+ttt2=ttt[c(211:420),]
+ttt3=cbind(ttt1,ttt2)
+ttt=ttt3[,c(1,4,6)]
+
+ggplot(ttt, aes(value, value.1, color = factor(ttt$group))) + geom_point()
+
+
+
 
 unkmeans.3 <- kmeans(firsttwo, 3, nstart = 20)
 ggplot(firsttwo, aes(pca.PC1, pca.PC2, color = factor(unkmeans.3$cluster))) + geom_point()
