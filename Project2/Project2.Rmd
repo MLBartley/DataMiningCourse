@@ -174,6 +174,7 @@ https://stats.stackexchange.com/questions/31083/how-to-produce-a-pretty-plot-of-
 ##K-Means and K-Centers Algorithm - Unsupervised clustering in Reduced Dataset (First two Principle Components)
 ```{r - Kcenters define }
 
+## http://onlinelibrary.wiley.com/doi/10.1002/9781118950951.ch12/pdf
 
 
 
