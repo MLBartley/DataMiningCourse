@@ -171,71 +171,124 @@ https://stats.stackexchange.com/questions/31083/how-to-produce-a-pretty-plot-of-
 -->
 
 
-##K-Means and K-Centers Algorithm - Unsupervised clustering in Reduced Dataset (First two Principle Components)
+##K-Means and K-Centers Algorithm - Unsupervised clustering in Reduced Dataset (First Two Principle Components)
+
+In this section, we applied unsupervised K-Means and K-Centers clustering algorithms to the reduced dataset (first two principle components).We tried 9 different numbers of clusters: 2 to 10 and plotted the scatter plot for each cluster number and for each algorithm. As the below figures show, there are differences between K-Center and K-Means clustering results. That is because k-means focuses on average distance while k-center focuses on worst scenario. 
+
 ```{r - Kcenters define }
 
-## http://onlinelibrary.wiley.com/doi/10.1002/9781118950951.ch12/pdf
+## http://onlinelibrary.wiley.com/doi/10.1002/9781118950951.ch12/pdf   no use for now 
 
+## gready algoritg for k-center 
 
-
+kcenter <- function (x,K) {
+  centers <- list()
+  n = length(x[,1])
+  # step1 
+  centers[[1]] = x[sample(1:n,1),1:2]
+  
+  # step2
+  distances <- vector("numeric",n)
+  cluster <- vector("integer",n)
+  for(j in 1:n){
+    distances[j] = dist(rbind(centers[[1]],x[j,1:2]))
+    cluster[j] = 1
+  }
+  
+  # step 3 
+  for(i in 2:K){
+    centers[[i]] = x[which.max(distances),1:2]
+    for(j in 1:n){
+      if(dist(rbind(centers[[i]],x[j,1:2]))<=distances[j]) {
+        distances[j]<-dist(rbind(centers[[i]],x[j,1:2]))
+        cluster[j] <- i
+      }
+    }
+  }
+  cluster
+}
 
 ```
+
 
 ```{r}
 firsttwo = project2data.new[, 1:2]
 par(mfrow=c(1,2))
 
-library(flexclust)
+## library(flexclust)
 
 unkmeans.2 <- kmeans(firsttwo, 2, nstart = 20)
-ggplot(firsttwo, aes(pca.PC1, pca.PC2, color = factor(unkmeans.2$cluster))) + geom_point()
+ggplot(firsttwo, aes(pca.PC1, pca.PC2, color = factor(unkmeans.2$cluster))) + geom_point() +theme(legend.title = element_blank()) + ggtitle("K-means") 
 
-
-unkcenter.2 <- flexclust::kcca(firsttwo, k=2,save.data = T)
-
-#plot(firsttwo)
-image(unkcenter.2)
-points(firsttwo)
-
-data.frame(unkcenter.2)
-#unkcenter.2[xrange]
-
-#flexclust::pairs-methods(unkcenter.2)
-##barplot(unkcenter.2)
-ttt = flexclust::kcca2df(unkcenter.2)
-ttt1=ttt[c(1:210),]
-ttt2=ttt[c(211:420),]
-ttt3=cbind(ttt1,ttt2)
-ttt=ttt3[,c(1,4,6)]
-
-ggplot(ttt, aes(value, value.1, color = factor(ttt$group))) + geom_point()
-
+unkcenter.2 <- kcenter(firsttwo,2)
+ggplot(firsttwo, aes(pca.PC1, pca.PC2, color = factor(unkcenter.2))) + geom_point() +theme(legend.title = element_blank()) + ggtitle("K-center") 
 
 
 
 unkmeans.3 <- kmeans(firsttwo, 3, nstart = 20)
-ggplot(firsttwo, aes(pca.PC1, pca.PC2, color = factor(unkmeans.3$cluster))) + geom_point()
+ggplot(firsttwo, aes(pca.PC1, pca.PC2, color = factor(unkmeans.3$cluster))) + geom_point()+theme(legend.title = element_blank()) + ggtitle("K-means") 
+
+unkcenter.3 <- kcenter(firsttwo,3)
+ggplot(firsttwo, aes(pca.PC1, pca.PC2, color = factor(unkcenter.3))) + geom_point() +theme(legend.title = element_blank()) + ggtitle("K-center")
+
+
 
 unkmeans.4 <- kmeans(firsttwo, 4, nstart = 20)
-ggplot(firsttwo, aes(pca.PC1, pca.PC2, color = factor(unkmeans.4$cluster))) + geom_point()
+ggplot(firsttwo, aes(pca.PC1, pca.PC2, color = factor(unkmeans.4$cluster))) + geom_point()+theme(legend.title = element_blank()) + ggtitle("K-means") 
+
+unkcenter.4 <- kcenter(firsttwo,4)
+ggplot(firsttwo, aes(pca.PC1, pca.PC2, color = factor(unkcenter.4))) + geom_point() +theme(legend.title = element_blank()) + ggtitle("K-center")
+
+
 
 unkmeans.5 <- kmeans(firsttwo, 5, nstart = 20)
-ggplot(firsttwo, aes(pca.PC1, pca.PC2, color = factor(unkmeans.5$cluster))) + geom_point()
+ggplot(firsttwo, aes(pca.PC1, pca.PC2, color = factor(unkmeans.5$cluster))) + geom_point()+theme(legend.title = element_blank()) + ggtitle("K-means")
+
+unkcenter.5 <- kcenter(firsttwo,5)
+ggplot(firsttwo, aes(pca.PC1, pca.PC2, color = factor(unkcenter.5))) + geom_point() +theme(legend.title = element_blank()) + ggtitle("K-center")
+
+
 
 unkmeans.6 <- kmeans(firsttwo, 6, nstart = 20)
-ggplot(firsttwo, aes(pca.PC1, pca.PC2, color = factor(unkmeans.6$cluster))) + geom_point()
+ggplot(firsttwo, aes(pca.PC1, pca.PC2, color = factor(unkmeans.6$cluster))) + geom_point()+theme(legend.title = element_blank()) + ggtitle("K-means") 
+
+unkcenter.6 <- kcenter(firsttwo,6)
+ggplot(firsttwo, aes(pca.PC1, pca.PC2, color = factor(unkcenter.6))) + geom_point() +theme(legend.title = element_blank()) + ggtitle("K-center")
+
+
 
 unkmeans.7 <- kmeans(firsttwo, 7, nstart = 20)
-ggplot(firsttwo, aes(pca.PC1, pca.PC2, color = factor(unkmeans.7$cluster))) + geom_point()
+ggplot(firsttwo, aes(pca.PC1, pca.PC2, color = factor(unkmeans.7$cluster))) + geom_point()+theme(legend.title = element_blank()) + ggtitle("K-means") 
+
+unkcenter.7 <- kcenter(firsttwo,7)
+ggplot(firsttwo, aes(pca.PC1, pca.PC2, color = factor(unkcenter.7))) + geom_point() +theme(legend.title = element_blank()) + ggtitle("K-center")
+
+
 
 unkmeans.8 <- kmeans(firsttwo, 8, nstart = 20)
-ggplot(firsttwo, aes(pca.PC1, pca.PC2, color = factor(unkmeans.8$cluster))) + geom_point()
+ggplot(firsttwo, aes(pca.PC1, pca.PC2, color = factor(unkmeans.8$cluster))) + geom_point()+theme(legend.title = element_blank()) + ggtitle("K-means") 
+
+unkcenter.8 <- kcenter(firsttwo,8)
+ggplot(firsttwo, aes(pca.PC1, pca.PC2, color = factor(unkcenter.8))) + geom_point() +theme(legend.title = element_blank()) + ggtitle("K-center")
+
+
 
 unkmeans.9 <- kmeans(firsttwo, 9, nstart = 20)
-ggplot(firsttwo, aes(pca.PC1, pca.PC2, color = factor(unkmeans.9$cluster))) + geom_point()
+ggplot(firsttwo, aes(pca.PC1, pca.PC2, color = factor(unkmeans.9$cluster))) + geom_point()+theme(legend.title = element_blank()) + ggtitle("K-means") 
+
+unkcenter.9 <- kcenter(firsttwo,9)
+ggplot(firsttwo, aes(pca.PC1, pca.PC2, color = factor(unkcenter.9))) + geom_point() +theme(legend.title = element_blank()) + ggtitle("K-center")
+
+
 
 unkmeans.10 <- kmeans(firsttwo, 10, nstart = 20)
-ggplot(firsttwo, aes(pca.PC1, pca.PC2, color = factor(unkmeans.10$cluster))) + geom_point()
+ggplot(firsttwo, aes(pca.PC1, pca.PC2, color = factor(unkmeans.10$cluster))) + geom_point()+theme(legend.title = element_blank()) + ggtitle("K-means")
+
+unkcenter.10 <- kcenter(firsttwo,10)
+ggplot(firsttwo, aes(pca.PC1, pca.PC2, color = factor(unkcenter.10))) + geom_point() +theme(legend.title = element_blank()) + ggtitle("K-center")
+
+
+
 
 ```
 
