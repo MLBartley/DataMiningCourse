@@ -323,4 +323,4 @@ To sum up, we finisehd the following analysis in this project.
 
 # Contributions 
 
-The different tasks required to complete this project were equally divided between Meridith and Fei. K-means and cross-valiation analyses were completed by Meridith while Fei was responsible for K-nearest and K-center comparison.Both members of this group contributed to the presentation slides and this report. 
+The different tasks required to complete this project were equally divided between Meridith and Fei. K-means and cross-valiation analyses were completed by Meridith while Fei was responsible for K-nearest and K-center comparison. Both members of this group contributed to the presentation slides and this report. 
