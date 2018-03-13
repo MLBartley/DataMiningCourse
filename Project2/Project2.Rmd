@@ -165,17 +165,19 @@ knn_train = knn(train=p2d_train,p2d_train,cl=p2d_trainlabels, k = 3)
 cm_train = as.matrix(table(Actual = p2d_trainlabels, Predicted = knn_train))
 train_acc= sum(diag(cm_train))/length(p2d_trainlabels)
 
-par(mfrow=c(1,2))
-ggplot(p2d_train, aes(area, perimeter, color = factor(p2d_trainlabels))) + geom_point() +theme(legend.title = element_blank()) + ggtitle("True labels in Training data") 
-ggplot(p2d_train, aes(area, perimeter, color = factor(knn_train))) + geom_point() +theme(legend.title = element_blank()) + ggtitle("Kmeans Prediction labels in Training data") 
+#par(mfrow=c(1,2))
+knn.1 = ggplot(p2d_train, aes(area, perimeter, color = factor(p2d_trainlabels))) + geom_point() +theme(legend.title = element_blank()) + ggtitle("True labels in Training data") 
+knn.2 = ggplot(p2d_train, aes(area, perimeter, color = factor(knn_train))) + geom_point() +theme(legend.title = element_blank()) + ggtitle("K-nearest Prediction labels in Training data") 
 
 knn_test = knn(train=p2d_train, test=p2d_test, cl=p2d_trainlabels, k = 3)
 cm_test = as.matrix(table(Actual = p2d_testlabels, Predicted = knn_test))
 test_acc= sum(diag(cm_test))/length(p2d_testlabels)
 
-par(mfrow=c(1,2))
-ggplot(p2d_test, aes(area, perimeter, color = factor(p2d_testlabels))) + geom_point() +theme(legend.title = element_blank()) + ggtitle("True labels in Test data") 
-ggplot(p2d_test, aes(area, perimeter, color = factor(knn_test))) + geom_point() +theme(legend.title = element_blank()) + ggtitle("Kmeans Prediction labels in Test data") 
+#par(mfrow=c(1,2))
+knn.3 = ggplot(p2d_test, aes(area, perimeter, color = factor(p2d_testlabels))) + geom_point() +theme(legend.title = element_blank()) + ggtitle("True labels in Test data") 
+knn.4 = ggplot(p2d_test, aes(area, perimeter, color = factor(knn_test))) + geom_point() +theme(legend.title = element_blank()) + ggtitle("K-nearest Prediction labels in Test data") 
+
+grid.arrange(knn.1, knn.2, knn.3, knn.4, ncol=2)
 ```
 
 
