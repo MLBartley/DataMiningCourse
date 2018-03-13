@@ -145,7 +145,7 @@ with(project2data[, -8], pairs(project2data[, -8], col=c(1:3)[km$cluster]))
 ```
 
 
-```{r}
+```{r include=FALSE}
 
 
 
@@ -156,26 +156,65 @@ plot(1:15, WSS., type="l", xlab = "No. of clusters", ylab = "Total WSS", main = 
 
 ```
 
-## K-Nearest Neighbor - Supervised clustering
+### Reduced Dimension Dataset
 
-```{r}
-knn <- knn(train = , test = , cl = , k = )
+```{r include=FALSE}
+
+#data partition
+
+p2d_pca_test <- project2data.new[-train_id, -8]
+p2d_pca_train <- project2data.new[train_id, -8]
+p2d_pca_testlabels <- project2data.new[-train_id, 8]
+p2d_pda_trainlabels <- project2data.new[train_id, 8]
+
 ```
 
 
+```{r, echo =FALSE}
+km <- kmeans(project2data.new[, -8], 3)
 
-<!-- USEFUL LINKS
-http://cowlet.org/2013/12/23/understanding-data-science-clustering-with-k-means-in-r.html
-https://stats.stackexchange.com/questions/31083/how-to-produce-a-pretty-plot-of-the-results-of-k-means-cluster-analysis
+knitr::kable(table(data.frame(project2data$type, km$cluster)))
 
--->
+plotcluster(project2data[, -8], km$cluster)
+
+clusplot(project2data[, -8], km$cluster, color=TRUE, shade=TRUE, 
+         labels=2, lines=0)
+
+with(project2data[, -8], pairs(project2data[, -8], col=c(1:3)[km$cluster])) 
+
+
+```
+
+## K-Nearest Neighbor - Supervised clustering
+
+```{r}
+knn <- knn(train = p2d_train, test = p2d_test, cl = p2d_trainlabels, k = 3)
+
+knn
+summary(knn)
+
+merge <- data.frame(knn, p2d_testlabels)
+names(merge) <- c("Predicted Label", "Observed Label")
+
+merge
+
+gmodels::CrossTable(x = p2d_testlabels, y = knn, prop.chisq = FALSE)
+```
+```{r include=FALSE}
+
+
+
+WSS. <- sapply(1:15, function(i){return(kmeans(project2data[-na.idx, -8], centers = i)$tot.withinss)})
+cbind(No.of.Cluters=1:15, WSS.)
+
+plot(1:15, WSS., type="l", xlab = "No. of clusters", ylab = "Total WSS", main = "Scree Plot")
 
 
 ##K-Means and K-Centers Algorithm - Unsupervised clustering in Reduced Dataset (First Two Principle Components)
 
 In this section, we applied unsupervised K-Means and K-Centers clustering algorithms to the reduced dataset (first two principle components).We tried 9 different numbers of clusters: 2 to 10 and plotted the scatter plot for each cluster number and for each algorithm. As the below figures show, there are differences between K-Center and K-Means clustering results. That is because k-means focuses on average distance while k-center focuses on worst scenario. 
 
-```{r - Kcenters define }
+```{r - Kcenters define, echo = FALSE }
 
 ## http://onlinelibrary.wiley.com/doi/10.1002/9781118950951.ch12/pdf   no use for now 
 
@@ -211,7 +250,7 @@ kcenter <- function (x,K) {
 ```
 
 
-```{r}
+```{r,  echo=FALSE, fig.keep='all'}
 firsttwo = project2data.new[, 1:2]
 par(mfrow=c(1,2))
 
@@ -291,4 +330,11 @@ ggplot(firsttwo, aes(pca.PC1, pca.PC2, color = factor(unkcenter.10))) + geom_poi
 
 
 ```
+
+
+<!-- USEFUL LINKS
+http://cowlet.org/2013/12/23/understanding-data-science-clustering-with-k-means-in-r.html
+https://stats.stackexchange.com/questions/31083/how-to-produce-a-pretty-plot-of-the-results-of-k-means-cluster-analysis
+
+-->
 
