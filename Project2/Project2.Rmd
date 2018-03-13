@@ -26,6 +26,7 @@ library(gridExtra)
 library(magrittr)
 library(cluster)
 library(fpc)
+library(FNN)
 ```
 
 
@@ -159,7 +160,8 @@ plot(1:15, WSS., type="l", xlab = "No. of clusters", ylab = "Total WSS", main = 
 ## K-Nearest Neighbor - Supervised clustering
 
 ```{r}
-knn <- knn(train = , test = , cl = , k = )
+
+knn.reg(train=p2d_train, test = p2d_teest, y =p2d_testlabels , k = 3)
 ```
 
 
