@@ -1,0 +1,294 @@
+---
+title: "Project 2"
+output:
+  html_notebook: default
+  pdf_document:
+    keep_tex: yes
+    latex_engine: xelatex
+  word_document: default
+---
+
+#Introduction
+
+This is Project 2 for STAT 557 2018 Spring by Meridith Bartley and Fei Jiang. The aim of this project is to practice the k-means algorithm and the k-nearest neighbor algorithm. In this project we applied {METHOD} to {WHAT TYPE} data in order to {ACHEIVE WHAT}. 
+
+#Description of Data
+
+The examined group comprised kernels belonging to three different varieties of wheat: Kama, Rosa and Canadian, 70 elements each, randomly selected for the experiment. High quality visualization of the internal kernel structure was detected using a soft X-ray technique. It is non-destructive and considerably cheaper than other more sophisticated imaging techniques like scanning microscopy or laser technology. The images were recorded on 13x18 cm X-ray KODAK plates. Studies were conducted using combine harvested wheat grain originating from experimental fields, explored at the Institute of Agrophysics of the Polish Academy of Sciences in Lublin. 
+
+Boxplots for each attribute used as explanitory variables in the subsequent classification models are included below. This EDA allows for early indication of which variables may possibly be ommitted during dimention reduction. That is, what properties do not differ significantly between seed types.
+
+```{r packages to load, include=FALSE}
+library(dplyr)
+library(ggplot2)
+library(grid)
+library(gridExtra)
+library(magrittr)
+library(cluster)
+library(fpc)
+```
+
+
+```{r load code and clean, include=FALSE, echo = F, message = F}
+# Basic clearning of our dataset 
+#project2data <- read.delim("seeds_dataset.txt", 
+#    "\t", escape.double = FALSE, col.names = FALSE, trim.ws = TRUE)
+
+project2data <- read.csv("seeds_dataset.csv", header=F) 
+
+
+#add column names and true seed types
+project2data <- project2data %>% 
+                'colnames<-' (c("area", "perimeter", "compactness", 
+                           "length", "width", "asymcoef", "groovelength",
+                           "remove")) %>% 
+                mutate(remove = NULL, 
+                      type =  c(rep("kama", 70), rep("rosa", 70),
+             
+                                                  rep("canadian", 70)))
+#shuffle rows
+project2data <- project2data[sample(nrow(project2data),nrow(project2data)),] 
+
+
+#rows with NA
+#na.idx = which(is.na(apply(project2data[, -8], 1, sum)))
+#project2data <- project2data[-na.idx, ]
+
+```
+
+## Exploritory Data Analysis
+
+```{r EDA - Mer, echo=FALSE, message = F, results = 'hide', fig.keep='all', fig.width = 8}
+
+varlist <- names(project2data)[-8]
+
+customPlot <- function(varName) {
+
+project2data %>% 
+group_by_("type") %>% 
+select_("type",varName) %>% 
+ggplot(aes_string("type",varName)) + geom_boxplot() + 
+   theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+}
+
+grid.arrange(grobs = lapply(varlist[1:4],customPlot))
+grid.arrange(grobs = lapply(varlist[5:7],customPlot), ncol = 2)
+
+cor(project2data[, -8])
+pairs(project2data[, -8])
+
+```
+
+# Principle Component Analysis
+
+
+```{r - Fei PCA, echo=FALSE}
+
+# Create new dataset with PCA 
+pca = prcomp(project2data[,-8])
+# print(pca$rotation)
+summary.pca = summary(pca)
+var.percent = summary.pca$importance[3, 2] #first two components
+# print(summary.pca)
+project2data.new = data.frame(pca=pca$x[,1:2],Type=project2data$type) #First 2 components explained 99.3% of the variance in the original dataset
+```
+
+In order to test whether dimension reduction will improve predictions we also conducted Principle Component Analysis on the original dataset to get a new dataset with fewer dimensions. According to our PCA results, the first two component in total can explain about `r var.percent * 100`% of variance of the original database. The coefficients of the relevent componets are listed in the table below. Therefore, we took the first two components and the seed type values to build a new dataset with less dimensions.
+
+```{r - PCA tables, echo=FALSE}
+#table of the variance and coefficients
+knitr::kable(summary.pca$importance)
+knitr::kable(pca$rotation[, 1:2])
+
+
+
+```
+
+#Analysis
+
+In the following analysis with two methods (k means and k-nearest neighbor algorithms - both supervised and unsupervised) and two datasets (original and dimension-reduced), we randomly selected 80% of the entire data as training data and the rest 20% as test data.   
+ 
+ 
+
+##K-Means Algorithm - Supervised clustering
+
+###Original Dataset
+
+```{r include=FALSE}
+
+#data partition
+train_id <- caret::createDataPartition(y=project2data$type, p=0.8,list = FALSE)
+
+
+p2d_test <- project2data[-train_id, -8]
+p2d_train <- project2data[train_id, -8]
+p2d_testlabels <- project2data[-train_id, 8]
+p2d_trainlabels <- project2data[train_id, 8]
+
+```
+
+
+```{r, echo =FALSE}
+km <- kmeans(project2data[, -8], 3)
+
+knitr::kable(table(data.frame(project2data$type, km$cluster)))
+
+plotcluster(project2data[, -8], km$cluster)
+
+clusplot(project2data[, -8], km$cluster, color=TRUE, shade=TRUE, 
+         labels=2, lines=0)
+
+with(project2data[, -8], pairs(project2data[, -8], col=c(1:3)[km$cluster])) 
+
+
+```
+
+
+```{r}
+
+
+
+WSS. <- sapply(1:15, function(i){return(kmeans(project2data[-na.idx, -8], centers = i)$tot.withinss)})
+cbind(No.of.Cluters=1:15, WSS.)
+
+plot(1:15, WSS., type="l", xlab = "No. of clusters", ylab = "Total WSS", main = "Scree Plot")
+
+```
+
+## K-Nearest Neighbor - Supervised clustering
+
+```{r}
+knn <- knn(train = , test = , cl = , k = )
+```
+
+
+
+<!-- USEFUL LINKS
+http://cowlet.org/2013/12/23/understanding-data-science-clustering-with-k-means-in-r.html
+https://stats.stackexchange.com/questions/31083/how-to-produce-a-pretty-plot-of-the-results-of-k-means-cluster-analysis
+
+-->
+
+
+##K-Means and K-Centers Algorithm - Unsupervised clustering in Reduced Dataset (First Two Principle Components)
+
+In this section, we applied unsupervised K-Means and K-Centers clustering algorithms to the reduced dataset (first two principle components).We tried 9 different numbers of clusters: 2 to 10 and plotted the scatter plot for each cluster number and for each algorithm. As the below figures show, there are differences between K-Center and K-Means clustering results. That is because k-means focuses on average distance while k-center focuses on worst scenario. 
+
+```{r - Kcenters define }
+
+## http://onlinelibrary.wiley.com/doi/10.1002/9781118950951.ch12/pdf   no use for now 
+
+## gready algoritg for k-center 
+
+kcenter <- function (x,K) {
+  centers <- list()
+  n = length(x[,1])
+  # step1 
+  centers[[1]] = x[sample(1:n,1),1:2]
+  
+  # step2
+  distances <- vector("numeric",n)
+  cluster <- vector("integer",n)
+  for(j in 1:n){
+    distances[j] = dist(rbind(centers[[1]],x[j,1:2]))
+    cluster[j] = 1
+  }
+  
+  # step 3 
+  for(i in 2:K){
+    centers[[i]] = x[which.max(distances),1:2]
+    for(j in 1:n){
+      if(dist(rbind(centers[[i]],x[j,1:2]))<=distances[j]) {
+        distances[j]<-dist(rbind(centers[[i]],x[j,1:2]))
+        cluster[j] <- i
+      }
+    }
+  }
+  cluster
+}
+
+```
+
+
+```{r}
+firsttwo = project2data.new[, 1:2]
+par(mfrow=c(1,2))
+
+## library(flexclust)
+
+unkmeans.2 <- kmeans(firsttwo, 2, nstart = 20)
+ggplot(firsttwo, aes(pca.PC1, pca.PC2, color = factor(unkmeans.2$cluster))) + geom_point() +theme(legend.title = element_blank()) + ggtitle("K-means") 
+
+unkcenter.2 <- kcenter(firsttwo,2)
+ggplot(firsttwo, aes(pca.PC1, pca.PC2, color = factor(unkcenter.2))) + geom_point() +theme(legend.title = element_blank()) + ggtitle("K-center") 
+
+
+
+unkmeans.3 <- kmeans(firsttwo, 3, nstart = 20)
+ggplot(firsttwo, aes(pca.PC1, pca.PC2, color = factor(unkmeans.3$cluster))) + geom_point()+theme(legend.title = element_blank()) + ggtitle("K-means") 
+
+unkcenter.3 <- kcenter(firsttwo,3)
+ggplot(firsttwo, aes(pca.PC1, pca.PC2, color = factor(unkcenter.3))) + geom_point() +theme(legend.title = element_blank()) + ggtitle("K-center")
+
+
+
+unkmeans.4 <- kmeans(firsttwo, 4, nstart = 20)
+ggplot(firsttwo, aes(pca.PC1, pca.PC2, color = factor(unkmeans.4$cluster))) + geom_point()+theme(legend.title = element_blank()) + ggtitle("K-means") 
+
+unkcenter.4 <- kcenter(firsttwo,4)
+ggplot(firsttwo, aes(pca.PC1, pca.PC2, color = factor(unkcenter.4))) + geom_point() +theme(legend.title = element_blank()) + ggtitle("K-center")
+
+
+
+unkmeans.5 <- kmeans(firsttwo, 5, nstart = 20)
+ggplot(firsttwo, aes(pca.PC1, pca.PC2, color = factor(unkmeans.5$cluster))) + geom_point()+theme(legend.title = element_blank()) + ggtitle("K-means")
+
+unkcenter.5 <- kcenter(firsttwo,5)
+ggplot(firsttwo, aes(pca.PC1, pca.PC2, color = factor(unkcenter.5))) + geom_point() +theme(legend.title = element_blank()) + ggtitle("K-center")
+
+
+
+unkmeans.6 <- kmeans(firsttwo, 6, nstart = 20)
+ggplot(firsttwo, aes(pca.PC1, pca.PC2, color = factor(unkmeans.6$cluster))) + geom_point()+theme(legend.title = element_blank()) + ggtitle("K-means") 
+
+unkcenter.6 <- kcenter(firsttwo,6)
+ggplot(firsttwo, aes(pca.PC1, pca.PC2, color = factor(unkcenter.6))) + geom_point() +theme(legend.title = element_blank()) + ggtitle("K-center")
+
+
+
+unkmeans.7 <- kmeans(firsttwo, 7, nstart = 20)
+ggplot(firsttwo, aes(pca.PC1, pca.PC2, color = factor(unkmeans.7$cluster))) + geom_point()+theme(legend.title = element_blank()) + ggtitle("K-means") 
+
+unkcenter.7 <- kcenter(firsttwo,7)
+ggplot(firsttwo, aes(pca.PC1, pca.PC2, color = factor(unkcenter.7))) + geom_point() +theme(legend.title = element_blank()) + ggtitle("K-center")
+
+
+
+unkmeans.8 <- kmeans(firsttwo, 8, nstart = 20)
+ggplot(firsttwo, aes(pca.PC1, pca.PC2, color = factor(unkmeans.8$cluster))) + geom_point()+theme(legend.title = element_blank()) + ggtitle("K-means") 
+
+unkcenter.8 <- kcenter(firsttwo,8)
+ggplot(firsttwo, aes(pca.PC1, pca.PC2, color = factor(unkcenter.8))) + geom_point() +theme(legend.title = element_blank()) + ggtitle("K-center")
+
+
+
+unkmeans.9 <- kmeans(firsttwo, 9, nstart = 20)
+ggplot(firsttwo, aes(pca.PC1, pca.PC2, color = factor(unkmeans.9$cluster))) + geom_point()+theme(legend.title = element_blank()) + ggtitle("K-means") 
+
+unkcenter.9 <- kcenter(firsttwo,9)
+ggplot(firsttwo, aes(pca.PC1, pca.PC2, color = factor(unkcenter.9))) + geom_point() +theme(legend.title = element_blank()) + ggtitle("K-center")
+
+
+
+unkmeans.10 <- kmeans(firsttwo, 10, nstart = 20)
+ggplot(firsttwo, aes(pca.PC1, pca.PC2, color = factor(unkmeans.10$cluster))) + geom_point()+theme(legend.title = element_blank()) + ggtitle("K-means")
+
+unkcenter.10 <- kcenter(firsttwo,10)
+ggplot(firsttwo, aes(pca.PC1, pca.PC2, color = factor(unkcenter.10))) + geom_point() +theme(legend.title = element_blank()) + ggtitle("K-center")
+
+
+
+
+```
+
