@@ -156,7 +156,9 @@ plot(1:15, WSS., type="l", xlab = "No. of clusters", ylab = "Total WSS", main = 
 
 ```
 
-## K-Nearest Neighbor - Supervised clustering
+## K-Nearest Neighbor - Supervised clustering in Original Dataset
+
+In this section, supervised K-nearest clustering is applied in the original dataset. The true and predictied lables in training and test data are shown in the figures below. In general, in the training data, we obtained the accuracy rate of 92.9% and in the testing data, the accuarcy rate is about 90.5%. 
 
 ```{r}
 knn_train = knn(train=p2d_train,p2d_train,cl=p2d_trainlabels, k = 3)
@@ -164,13 +166,16 @@ cm_train = as.matrix(table(Actual = p2d_trainlabels, Predicted = knn_train))
 train_acc= sum(diag(cm_train))/length(p2d_trainlabels)
 
 par(mfrow=c(1,2))
-plot(p2d_train$area,p2d_train$perimeter,col=factor(p2d_trainlabels))
-plot(p2d_train$area,p2d_train$perimeter,col=factor(knn_train))
-
+ggplot(p2d_train, aes(area, perimeter, color = factor(p2d_trainlabels))) + geom_point() +theme(legend.title = element_blank()) + ggtitle("True labels in Training data") 
+ggplot(p2d_train, aes(area, perimeter, color = factor(knn_train))) + geom_point() +theme(legend.title = element_blank()) + ggtitle("Kmeans Prediction labels in Training data") 
 
 knn_test = knn(train=p2d_train, test=p2d_test, cl=p2d_trainlabels, k = 3)
 cm_test = as.matrix(table(Actual = p2d_testlabels, Predicted = knn_test))
 test_acc= sum(diag(cm_test))/length(p2d_testlabels)
+
+par(mfrow=c(1,2))
+ggplot(p2d_test, aes(area, perimeter, color = factor(p2d_testlabels))) + geom_point() +theme(legend.title = element_blank()) + ggtitle("True labels in Test data") 
+ggplot(p2d_test, aes(area, perimeter, color = factor(knn_test))) + geom_point() +theme(legend.title = element_blank()) + ggtitle("Kmeans Prediction labels in Test data") 
 ```
 
 
