@@ -46,7 +46,7 @@ project2data <- project2data %>%
                 mutate(remove = NULL, 
                       type =  c(rep("kama", 70), rep("rosa", 70),
              
-                                                  rep("canadian", 70)))
+                                      rep("canadian", 70)))
 #shuffle rows
 project2data <- project2data[sample(nrow(project2data),nrow(project2data)),] 
 
@@ -112,9 +112,8 @@ In the following analysis with two methods (k means and k-nearest neighbor algor
  
  
 
-##K-Means Algorithm - Supervised clustering
+##K-Means Algorithm - Supervised clustering of Origianl Dataset
 
-###Original Dataset
 
 ```{r include=FALSE}
 
@@ -160,8 +159,17 @@ plot(1:15, WSS., type="l", xlab = "No. of clusters", ylab = "Total WSS", main = 
 ## K-Nearest Neighbor - Supervised clustering
 
 ```{r}
+knn_train = knn(train=p2d_train,p2d_train,cl=p2d_trainlabels, k = 3)
+cm_train = as.matrix(table(Actual = p2d_trainlabels, Predicted = knn_train))
+train_acc= sum(diag(cm_train))/length(p2d_trainlabels)
 
-knn.reg(train=p2d_train, test = p2d_teest, y =p2d_testlabels , k = 3)
+par(mfrow=c(1,2))
+plot(p2d_train$area,p2d_train$perimeter,col=factor(p2d_trainlabels))
+plot(p2d_train$area,p2d_train$perimeter,col=factor(knn_train))
+
+knn_test = knn(train=p2d_train, test=p2d_test, cl=p2d_trainlabels, k = 3)
+cm_test = as.matrix(table(Actual = p2d_testlabels, Predicted = knn_test))
+test_acc= sum(diag(cm_test))/length(p2d_testlabels)
 ```
 
 
@@ -169,6 +177,7 @@ knn.reg(train=p2d_train, test = p2d_teest, y =p2d_testlabels , k = 3)
 <!-- USEFUL LINKS
 http://cowlet.org/2013/12/23/understanding-data-science-clustering-with-k-means-in-r.html
 https://stats.stackexchange.com/questions/31083/how-to-produce-a-pretty-plot-of-the-results-of-k-means-cluster-analysis
+https://www.r-bloggers.com/k-means-clustering-in-r/
 
 -->
 
