@@ -167,6 +167,7 @@ par(mfrow=c(1,2))
 plot(p2d_train$area,p2d_train$perimeter,col=factor(p2d_trainlabels))
 plot(p2d_train$area,p2d_train$perimeter,col=factor(knn_train))
 
+
 knn_test = knn(train=p2d_train, test=p2d_test, cl=p2d_trainlabels, k = 3)
 cm_test = as.matrix(table(Actual = p2d_testlabels, Predicted = knn_test))
 test_acc= sum(diag(cm_test))/length(p2d_testlabels)
