@@ -10,7 +10,7 @@ output:
 
 #Introduction
 
-This is Project 2 for STAT 557 2018 Spring by Meridith Bartley and Fei Jiang. The aim of this project is to practice the k-means algorithm and the k-nearest neighbor algorithm. In this project we applied {METHOD} to {WHAT TYPE} data in order to {ACHEIVE WHAT}. 
+This is Project 2 for STAT 557 2018 Spring by Meridith Bartley and Fei Jiang. The aim of this project is to practice the k-means algorithm and the k-nearest neighbor algorithm. In this project we applied both algorithms to seed data in order to classify/cluster by seed type. 
 
 #Description of Data
 
@@ -21,6 +21,7 @@ Boxplots for each attribute used as explanitory variables in the subsequent clas
 ```{r packages to load, include=FALSE}
 library(dplyr)
 library(ggplot2)
+library(flexclust)
 library(grid)
 library(gridExtra)
 library(magrittr)
@@ -130,20 +131,52 @@ p2d_trainlabels <- project2data[train_id, 8]
 
 
 ```{r, echo =FALSE}
-km <- kmeans(project2data[, -8], 3)
 
-knitr::kable(table(data.frame(project2data$type, km$cluster)))
+accurate <- vector()
 
-plotcluster(project2data[, -8], km$cluster)
+for ( k in 2:10) {
+  km = kcca(p2d_train, k = k, kccaFamily("kmeans"))
+  
+  pred_train <- predict(km)
+  pred_test <- predict(km, newdata=p2d_test)
+  
+  accurate[k] <- round(sum(diag(prop.table(table(p2d_testlabels, pred_test)))), 2) * 100
+}
 
-clusplot(project2data[, -8], km$cluster, color=TRUE, shade=TRUE, 
-         labels=2, lines=0)
 
-with(project2data[, -8], pairs(project2data[, -8], col=c(1:3)[km$cluster])) 
+km = kcca(p2d_train, k=3, kccaFamily("kmeans"), )
+km
+
+pred_train <- predict(km)
+pred_test <- predict(km, newdata=p2d_test)
+
+image(km)
+points(p2d_train, col=pred_train, pch=19, cex=0.3)
+points(p2d_test, col=pred_test, pch=22, bg="orange")
+
+
+
+ct.km <- table(p2d_testlabels, pred_test)
 
 
 ```
+We initially conducted the k-means algorthm with `r k = 3` on the original dataset and found that the overall prediction accuracy of our model in testing data is about `r round(sum(diag(prop.table(ct.km))), 2) * 100`%. 
 
+
+```{r, inckude = F}
+km <- kmeans(p2d_train, 3)
+
+# knitr::kable(table(data.frame(p2d_trainlabels, km$cluster)))
+
+# plotcluster(p2d_train, km$cluster)
+
+clusplot(p2d_train, km$cluster, color=TRUE, shade=TRUE,
+         labels=1, lines=0)
+#
+# with(p2d_train, pairs(p2d_train, col=c(1:3)[km$cluster]))
+
+```
+ 
 
 ```{r include=FALSE}
 
