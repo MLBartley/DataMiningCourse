@@ -147,13 +147,13 @@ Cumulative Proportion & 0.82939 & 0.993020 & 0.9986800 & 0.9996700 &
 & PC1 & PC2\tabularnewline
 \midrule
 \endhead
-area & -0.8842285 & 0.1008058\tabularnewline
-perimeter & -0.3954054 & 0.0564896\tabularnewline
-compactness & -0.0043113 & -0.0028947\tabularnewline
-length & -0.1285445 & 0.0306217\tabularnewline
-width & -0.1110591 & 0.0023723\tabularnewline
-asymcoef & 0.1276156 & 0.9894105\tabularnewline
-groovelength & -0.1289665 & 0.0822334\tabularnewline
+area & 0.8842285 & 0.1008058\tabularnewline
+perimeter & 0.3954054 & 0.0564896\tabularnewline
+compactness & 0.0043113 & -0.0028947\tabularnewline
+length & 0.1285445 & 0.0306217\tabularnewline
+width & 0.1110591 & 0.0023723\tabularnewline
+asymcoef & -0.1276156 & 0.9894105\tabularnewline
+groovelength & 0.1289665 & 0.0822334\tabularnewline
 \bottomrule
 \end{longtable}
 
@@ -167,26 +167,45 @@ entire data as training data and the rest 20\% as test data.
 \subsection{K-Means Algorithm - Unsupervised clustering of Original
 Dataset}\label{k-means-algorithm---unsupervised-clustering-of-original-dataset}
 
-We initially conducted the k-means algorthm with on the original dataset
-and found that the overall prediction accuracy of our model in testing
-data is about 86\%. In addition, we applied the k-means algorithem to a
+When conducting the k-means algorthm with on the original dataset and
+found that the overall prediction accuracy of our model in testing data
+is about 90\%. In addition, we applied the k-means algorithem to a
 dimension reduced data set using the first two principal compoents and
-found that with the testing data there was about 86\% accuracy. In the
+found that with the testing data there was about 90\% accuracy. In the
 following plot we can see the cluster plot that uses PCA to draw the
 data using the first two principal components to explain the data.
 
 \includegraphics{Project2_files/figure-latex/unnamed-chunk-3-1.pdf}
 
 While we have reported the outcomes for k = 3, we also explored the
-possibilities of other size selections for k. We looked at total Within
-Groups Sums of Squares as a measure of how well our clusters fit the
-data. This is a measure of the distance the vectors in each cluster are
-from their respected centroid.The goal is to minimiza this value but no
-further than when the rate of improvement drops off. The scree plot
-below of these WSS values do indicate that is an appropraite number of
-clusters to choose. Indeed we do know from the data available that there
-are three seed types included.\\
-\includegraphics{Project2_files/figure-latex/unnamed-chunk-4-1.pdf}
+possibilities of other size selections for k (see below table for
+comparison of accuracies). We also looked at total Within Groups Sums of
+Squares as a measure of how well our clusters fit the data. This is a
+measure of the distance the vectors in each cluster are from their
+respected centroid.The goal is to minimiza this value but no further
+than when the rate of improvement drops off. The scree plot below of
+these WSS values do indicate that is an appropraite number of clusters
+to choose. Indeed we do know from the data available that there are
+three seed types included.
+
+\begin{longtable}[]{@{}rr@{}}
+\toprule
+K & \% Accuracy\tabularnewline
+\midrule
+\endhead
+2 & 98\tabularnewline
+3 & 90\tabularnewline
+4 & 90\tabularnewline
+5 & 83\tabularnewline
+6 & 93\tabularnewline
+7 & 57\tabularnewline
+8 & 88\tabularnewline
+9 & 95\tabularnewline
+10 & 40\tabularnewline
+\bottomrule
+\end{longtable}
+
+\includegraphics{Project2_files/figure-latex/unnamed-chunk-5-1.pdf}
 
 \subsection{K-Nearest Neighbor - Supervised clustering in Original
 Dataset}\label{k-nearest-neighbor---supervised-clustering-in-original-dataset}
@@ -218,11 +237,11 @@ As the below figures show, there are differences between K-Center and
 K-Means clustering results. That is because k-means focuses on average
 distance while k-center focuses on worst scenario.
 
-\includegraphics{Project2_files/figure-latex/unnamed-chunk-5-1.pdf}
-\includegraphics{Project2_files/figure-latex/unnamed-chunk-5-2.pdf}
-\includegraphics{Project2_files/figure-latex/unnamed-chunk-5-3.pdf}
-\includegraphics{Project2_files/figure-latex/unnamed-chunk-5-4.pdf}
-\includegraphics{Project2_files/figure-latex/unnamed-chunk-5-5.pdf}
+\includegraphics{Project2_files/figure-latex/unnamed-chunk-6-1.pdf}
+\includegraphics{Project2_files/figure-latex/unnamed-chunk-6-2.pdf}
+\includegraphics{Project2_files/figure-latex/unnamed-chunk-6-3.pdf}
+\includegraphics{Project2_files/figure-latex/unnamed-chunk-6-4.pdf}
+\includegraphics{Project2_files/figure-latex/unnamed-chunk-6-5.pdf}
 
 \section{Conclusions}\label{conclusions}
 
@@ -232,7 +251,7 @@ To sum up, we finisehd the following analysis in this project.
 \item
   The K-means clustering method on both the original and dimension
   reduced training and testing data, both showing similar accuracies of
-  about 86\% for the testing data.
+  about 90\% for the testing data.
 \item
   Confirmed a cluster size of by examining the Within Sums of Squares
   values.

@@ -175,15 +175,23 @@ train_id <- caret::createDataPartition(y=project2data$type, p=0.8,list = FALSE)
 
 p2d_test <- project2data[-train_id, -8]
 p2d_train <- project2data[train_id, -8]
-p2d_testlabels <- project2data[-train_id, 8]
-p2d_trainlabels <- project2data[train_id, 8]
+p2d_testlabels <- as.factor(project2data[-train_id, 8])
+p2d_trainlabels <- as.factor(project2data[train_id, 8])
 
 ```
 
 
-```{r, echo =FALSE}
+```{r, echo =FALSE, warning = FALSE, results= FALSE }
+km.all <-list()
+acc.test.all <- matrix(ncol = 2, nrow = 0)
 
-
+for (k in 2:10) {
+km.all[[k]] <- kmeans(p2d_train, k)
+pred.all <- predict(as.kcca(km.all[[k]], data = p2d_train), newdata = p2d_test)
+cm.all <- calculate.confusion(states = p2d_testlabels, clusters = pred.all)
+labels.all <- assign.cluster.labels(cm.all, k)
+acc.test.all <- rbind(acc.test.all, c(k, calculate.accuracy(p2d_testlabels, labels.all[pred.all])))
+}
 
 # km = kcca(p2d_train, k=3, kccaFamily("kmeans"))
 # km
@@ -210,12 +218,6 @@ pred_test_labeled <- assign.cluster.labels(cm.test, 3)
 
 acc.test <- calculate.accuracy(p2d_testlabels, pred_test_labeled[km.test$cluster])
 
-
-# km.4 <- kmeans(p2d_train, 4)
-# cm.4 <- calculate.confusion(states = p2d_trainlabels, clusters = km.4$cluster)
-# labels.4 <- assign.cluster.labels(cm.4, 4)
-# acc.train.4 <- calculate.accuracy(p2d_trainlabels, labels.4[km.4$cluster])
-
 test.PCA <- project2data.new[-train_id, ]
 train.PCA <- project2data.new[train_id, ]
 
@@ -233,8 +235,14 @@ pred_test_labeled.PCA <- assign.cluster.labels(cm.test.PCA, 3)
 
 
 acc.test.PCA <- calculate.accuracy(test.PCA[, 3], pred_test_labeled.PCA[km.test.PCA$cluster])
+
+
+
+
 ```
-We initially conducted the k-means algorthm with `r k = 3` on the original dataset and found that the overall prediction accuracy of our model in testing data is about `r round(acc.test, 2) * 100`%. In addition, we applied the k-means algorithem to a dimension reduced data set using the first two principal compoents and found that with the testing data there was about `r round(acc.test.PCA, 2) * 100`% accuracy.  In the following plot we can see the cluster plot that uses PCA to draw the data using the first two principal components to explain the data. 
+
+
+When conducting the k-means algorthm with `r k = 3` on the original dataset and found that the overall prediction accuracy of our model in testing data is about `r round(acc.test, 2) * 100`%. In addition, we applied the k-means algorithem to a dimension reduced data set using the first two principal compoents and found that with the testing data there was about `r round(acc.test.PCA, 2) * 100`% accuracy.  In the following plot we can see the cluster plot that uses PCA to draw the data using the first two principal components to explain the data. 
 
 
 ```{r, inckude = FALSE, echo=FALSE           }
@@ -251,9 +259,17 @@ clusplot(p2d_train, km$cluster, color=TRUE, shade=TRUE,
 
 ```
  
-While we have reported the outcomes for k = 3, we also explored the possibilities of other size selections for k. We looked at total Within Groups Sums of Squares as a measure of how well our clusters fit the data. This is a measure of the distance the vectors in each cluster are from their respected centroid.The goal is to minimiza this value but no further than when the rate of improvement drops off. The scree plot below of these WSS values do indicate that `r k = 3` is an appropraite number of clusters to choose. Indeed we do know from the data available that there are three seed types included.  
-```{r, echo=FALSE, message = F, results = 'hide', fig.keep='all', fig.width = 8}
+While we have reported the outcomes for k = 3, we also explored the possibilities of other size selections for k (see below table for comparison of accuracies). We also looked at total Within Groups Sums of Squares as a measure of how well our clusters fit the data. This is a measure of the distance the vectors in each cluster are from their respected centroid.The goal is to minimiza this value but no further than when the rate of improvement drops off. The scree plot below of these WSS values do indicate that `r k = 3` is an appropraite number of clusters to choose. Indeed we do know from the data available that there are three seed types included.  
 
+```{r echo=FALSE}
+### compare accuracies
+colnames(acc.test.all) <- c("K", "% Accuracy")
+acc.test.all[, 2] <- round(acc.test.all[,2], 2) * 100
+knitr::kable((acc.test.all[-10, ]))
+```
+
+
+```{r, echo=FALSE, message = F, results = 'hide', fig.keep='all', fig.width = 8}
 
 
 WSS. <- sapply(1:10, function(i){return(kmeans(project2data[, -8], centers = i)$tot.withinss)})
