@@ -30,6 +30,57 @@ library(fpc)
 library(FNN)
 ```
 
+```{r functions, include=FALSE}
+
+calculate.confusion <- function(states, clusters)
+{
+  # generate a confusion matrix of cols C versus states S
+  d <- data.frame(state = states, cluster = clusters)
+  td <- as.data.frame(table(d))
+  # convert from raw counts to percentage of each label
+  pc <- matrix(ncol=max(clusters),nrow=0) # k cols
+  for (i in 1:3) # 9 labels
+  {
+    total <- sum(td[td$state==td$state[i],3])
+    pc <- rbind(pc, td[td$state==td$state[i],3]/total)
+  }
+  rownames(pc) <- td[1:3,1]
+  return(pc)
+}
+
+assign.cluster.labels <- function(cm, k)
+{
+  # take the cluster label from the highest percentage in that column
+  cluster.labels <- list()
+  for (i in 1:k)
+  {
+    cluster.labels <- rbind(cluster.labels, row.names(cm)[match(max(cm[,i]), cm[,i])])
+  }
+
+  # this may still miss some labels, so make sure all labels are included
+  for (l in rownames(cm)) 
+  { 
+    if (!(l %in% cluster.labels)) 
+    { 
+      cluster.number <- match(max(cm[l,]), cm[l,])
+      cluster.labels[[cluster.number]] <- c(cluster.labels[[cluster.number]], l)
+    } 
+  }
+  return(cluster.labels)
+}
+
+calculate.accuracy <- function(states, clabels)
+{
+  matching <- Map(function(state, labels) { state %in% labels }, states, clabels)
+  tf <- unlist(matching, use.names=FALSE)
+  return (sum(tf)/length(tf))
+}
+
+
+```
+
+
+
 
 ```{r load code and clean, include=FALSE, echo = F, message = F}
 # Basic clearning of our dataset 
@@ -132,33 +183,38 @@ p2d_trainlabels <- project2data[train_id, 8]
 
 ```{r, echo =FALSE}
 
-accurate <- vector()
-
-for ( k in 2:10) {
-  km = kcca(p2d_train, k = k, kccaFamily("kmeans"))
-  
-  pred_train <- predict(km)
-  pred_test <- predict(km, newdata=p2d_test)
-  
-  accurate[k] <- round(sum(diag(prop.table(table(p2d_testlabels, pred_test)))), 2) * 100
-}
 
 
-km = kcca(p2d_train, k=3, kccaFamily("kmeans"), )
-km
+# km = kcca(p2d_train, k=3, kccaFamily("kmeans"))
+# km
+# 
+# pred_train <- predict(km)
+# pred_test <- predict(km, newdata=p2d_test)
+# 
+# image(km)
+# points(p2d_train, col=pred_train, pch=19, cex=0.3)
+# points(p2d_test, col=pred_test, pch=22, bg="orange")
+# 
 
-pred_train <- predict(km)
-pred_test <- predict(km, newdata=p2d_test)
+km <- kmeans(p2d_train, 3)
+cm <- calculate.confusion(states = p2d_trainlabels, clusters = km$cluster)
+pred_train_labeled <- assign.cluster.labels(cm, 3)
 
-image(km)
-points(p2d_train, col=pred_train, pch=19, cex=0.3)
-points(p2d_test, col=pred_test, pch=22, bg="orange")
-
+acc.train <- calculate.accuracy(p2d_trainlabels, pred_train_labeled[km$cluster])
 
 
-ct.km <- table(p2d_testlabels, pred_test)
+km.test <- kmeans(p2d_test, 3)
+cm.test <- calculate.confusion(states = p2d_testlabels, clusters = km.test$cluster)
+pred_test_labeled <- assign.cluster.labels(cm.test, 3)
 
 
+acc.test <- calculate.accuracy(p2d_testlabels, pred_test_labeled[km.test$cluster])
+
+
+# km.4 <- kmeans(p2d_train, 4)
+# cm.4 <- calculate.confusion(states = p2d_trainlabels, clusters = km.4$cluster)
+# labels.4 <- assign.cluster.labels(cm.4, 4)
+# acc.train.4 <- calculate.accuracy(p2d_trainlabels, labels.4[km.4$cluster])
 ```
 We initially conducted the k-means algorthm with `r k = 3` on the original dataset and found that the overall prediction accuracy of our model in testing data is about `r round(sum(diag(prop.table(ct.km))), 2) * 100`%. 
 
@@ -208,12 +264,6 @@ test_acc= sum(diag(cm_test))/length(p2d_testlabels)
 
 
 
-<!-- USEFUL LINKS
-http://cowlet.org/2013/12/23/understanding-data-science-clustering-with-k-means-in-r.html
-https://stats.stackexchange.com/questions/31083/how-to-produce-a-pretty-plot-of-the-results-of-k-means-cluster-analysis
-https://www.r-bloggers.com/k-means-clustering-in-r/
-
--->
 
 
 ##K-Means and K-Centers Algorithm - Unsupervised clustering in Reduced Dataset (First Two Principle Components)
@@ -336,4 +386,15 @@ ggplot(firsttwo, aes(pca.PC1, pca.PC2, color = factor(unkcenter.10))) + geom_poi
 
 
 ```
+
+
+
+<!-- USEFUL LINKS
+http://cowlet.org/2013/12/23/understanding-data-science-clustering-with-k-means-in-r.html
+https://stats.stackexchange.com/questions/31083/how-to-produce-a-pretty-plot-of-the-results-of-k-means-cluster-analysis
+https://www.r-bloggers.com/k-means-clustering-in-r/
+
+-->
+
+
 
