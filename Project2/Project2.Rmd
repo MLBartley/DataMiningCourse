@@ -193,7 +193,7 @@ https://www.r-bloggers.com/k-means-clustering-in-r/
 
 ##K-Means and K-Centers Algorithm - Unsupervised clustering in Reduced Dataset (First Two Principle Components)
 
-In this section, we applied unsupervised K-Means and K-Centers clustering algorithms to the reduced dataset (first two principle components).We tried 9 different numbers of clusters: 2 to 10 and plotted the scatter plot for each cluster number and for each algorithm. As the below figures show, there are differences between K-Center and K-Means clustering results. That is because k-means focuses on average distance while k-center focuses on worst scenario. 
+In this section, we applied unsupervised K-Means and K-Centers clustering algorithms to the reduced dataset (first two principle components).We tried 9 different numbers of clusters: 2 to 10 and plotted the scatter plot for each cluster number and for each algorithm. As the below figures show, there are differences between K-Center and K-Means clustering results. That is because k-means focuses on minimizing the average distance from the center within in a group while k-center minimizes the largest distance from the center within a group. 
 
 ```{r - Kcenters define, echo=FALSE, message = F, results = 'hide', fig.keep='all', fig.width = 8}
 
