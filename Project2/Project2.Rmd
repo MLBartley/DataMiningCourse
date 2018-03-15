@@ -1,10 +1,10 @@
 ---
 title: "Project 2"
 output:
-  html_notebook: default
   pdf_document:
     keep_tex: yes
     latex_engine: xelatex
+  html_notebook: default
   word_document: default
 ---
 
@@ -164,7 +164,7 @@ In the following analysis with two methods (k means and k-nearest neighbor algor
  
  
 
-##K-Means Algorithm - Supervised clustering of Origianl Dataset
+##K-Means Algorithm - Unsupervised clustering of Original Dataset
 
 
 ```{r include=FALSE}
@@ -215,11 +215,29 @@ acc.test <- calculate.accuracy(p2d_testlabels, pred_test_labeled[km.test$cluster
 # cm.4 <- calculate.confusion(states = p2d_trainlabels, clusters = km.4$cluster)
 # labels.4 <- assign.cluster.labels(cm.4, 4)
 # acc.train.4 <- calculate.accuracy(p2d_trainlabels, labels.4[km.4$cluster])
+
+test.PCA <- project2data.new[-train_id, ]
+train.PCA <- project2data.new[train_id, ]
+
+
+km.PCA <- kmeans(train.PCA[, 1:2], 3)
+cm.PCA <- calculate.confusion(states = train.PCA[, 3], clusters = km.PCA$cluster)
+pred_train_labeled.PCA <- assign.cluster.labels(cm.PCA, 3)
+
+acc.train.PCA <- calculate.accuracy(train.PCA[, 3], pred_train_labeled.PCA[km.PCA$cluster])
+
+
+km.test.PCA <- kmeans(test.PCA[, 1:2], 3)
+cm.test.PCA <- calculate.confusion(states = test.PCA[, 3], clusters = km.test.PCA$cluster)
+pred_test_labeled.PCA <- assign.cluster.labels(cm.test.PCA, 3)
+
+
+acc.test.PCA <- calculate.accuracy(test.PCA[, 3], pred_test_labeled.PCA[km.test.PCA$cluster])
 ```
-We initially conducted the k-means algorthm with `r k = 3` on the original dataset and found that the overall prediction accuracy of our model in testing data is about `r round(sum(diag(prop.table(ct.km))), 2) * 100`%. 
+We initially conducted the k-means algorthm with `r k = 3` on the original dataset and found that the overall prediction accuracy of our model in testing data is about `r round(acc.test, 2) * 100`%. In addition, we applied the k-means algorithem to a dimension reduced data set using the first two principal compoents and found that with the testing data there was about `r round(acc.test.PCA, 2) * 100`% accuracy.  In the following plot we can see the cluster plot that uses PCA to draw the data using the first two principal components to explain the data. 
 
 
-```{r, inckude = F}
+```{r, inckude = FALSE, echo=FALSE           }
 km <- kmeans(p2d_train, 3)
 
 # knitr::kable(table(data.frame(p2d_trainlabels, km$cluster)))
@@ -233,33 +251,43 @@ clusplot(p2d_train, km$cluster, color=TRUE, shade=TRUE,
 
 ```
  
+While we have reported the outcomes for k = 3, we also explored the possibilities of other size selections for k. We looked at total Within Groups Sums of Squares as a measure of how well our clusters fit the data. This is a measure of the distance the vectors in each cluster are from their respected centroid.The goal is to minimiza this value but no further than when the rate of improvement drops off. The scree plot below of these WSS values do indicate that `r k = 3` is an appropraite number of clusters to choose. Indeed we do know from the data available that there are three seed types included.  
+```{r, echo=FALSE, message = F, results = 'hide', fig.keep='all', fig.width = 8}
 
-```{r}
 
 
+WSS. <- sapply(1:10, function(i){return(kmeans(project2data[, -8], centers = i)$tot.withinss)})
+cbind(No.of.Cluters=1:10, WSS.)
 
-WSS. <- sapply(1:15, function(i){return(kmeans(project2data[-na.idx, -8], centers = i)$tot.withinss)})
-cbind(No.of.Cluters=1:15, WSS.)
-
-plot(1:15, WSS., type="l", xlab = "No. of clusters", ylab = "Total WSS", main = "Scree Plot")
+plot(1:10, WSS., type="l", xlab = "No. of clusters", ylab = "Total WSS", main = "Scree Plot")
 
 ```
 
-## K-Nearest Neighbor - Supervised clustering
+## K-Nearest Neighbor - Supervised clustering in Original Dataset
 
-```{r}
+In this section, supervised K-nearest clustering is applied in the original dataset. The true and predictied lables in training and test data are shown in the figures below. In those figures, only first two predictors were shown. In general, in the training data, we obtained the accuracy rate of 92.9% and in the testing data, the accuarcy rate is about 90.5%. We think we reached a satisfying accuracy rate.
+
+In the following plots we explore the true labels compared to those predicted by K-nearest neighbor clustering. We do this for both the original training and testing datasets. Not that we have plotted the data by area and the asymmetrical coefficent. It's clear that this method of clusing the data is performing well. 
+
+```{r - Fei, echo=FALSE, message = F, results = 'hide', fig.keep='all'}
 knn_train = knn(train=p2d_train,p2d_train,cl=p2d_trainlabels, k = 3)
 cm_train = as.matrix(table(Actual = p2d_trainlabels, Predicted = knn_train))
 train_acc= sum(diag(cm_train))/length(p2d_trainlabels)
 
-par(mfrow=c(1,2))
-plot(p2d_train$area,p2d_train$perimeter,col=factor(p2d_trainlabels))
-plot(p2d_train$area,p2d_train$perimeter,col=factor(knn_train))
-
+#par(mfrow=c(1,2))
+knn.1 = ggplot(p2d_train, aes(area, asymcoef, color = factor(p2d_trainlabels))) + geom_point() +theme(legend.title = element_blank()) + ggtitle("True labels in Training data") 
+knn.2 = ggplot(p2d_train, aes(area, asymcoef, color = factor(knn_train))) + geom_point() +theme(legend.title = element_blank()) + ggtitle("K-nearest Prediction labels in Training data") 
 
 knn_test = knn(train=p2d_train, test=p2d_test, cl=p2d_trainlabels, k = 3)
 cm_test = as.matrix(table(Actual = p2d_testlabels, Predicted = knn_test))
 test_acc= sum(diag(cm_test))/length(p2d_testlabels)
+
+#par(mfrow=c(1,2))
+knn.3 = ggplot(p2d_test, aes(area, asymcoef, color = factor(p2d_testlabels))) + geom_point() +theme(legend.title = element_blank()) + ggtitle("True labels in Test data") 
+knn.4 = ggplot(p2d_test, aes(area, asymcoef, color = factor(knn_test))) + geom_point() +theme(legend.title = element_blank()) + ggtitle("K-nearest Prediction labels in Test data") 
+
+grid.arrange(knn.1, knn.2, knn.3, knn.4, ncol=2)
+# grid.arrange(knn.3, knn.4, ncol=2)
 ```
 
 
@@ -270,7 +298,7 @@ test_acc= sum(diag(cm_test))/length(p2d_testlabels)
 
 In this section, we applied unsupervised K-Means and K-Centers clustering algorithms to the reduced dataset (first two principle components).We tried 9 different numbers of clusters: 2 to 10 and plotted the scatter plot for each cluster number and for each algorithm. As the below figures show, there are differences between K-Center and K-Means clustering results. That is because k-means focuses on average distance while k-center focuses on worst scenario. 
 
-```{r - Kcenters define }
+```{r - Kcenters define, echo=FALSE, message = F, results = 'hide', fig.keep='all', fig.width = 8}
 
 ## http://onlinelibrary.wiley.com/doi/10.1002/9781118950951.ch12/pdf   no use for now 
 
@@ -306,82 +334,89 @@ kcenter <- function (x,K) {
 ```
 
 
-```{r}
+```{r, echo=FALSE, message = F, results = 'hide', fig.keep='all'}
 firsttwo = project2data.new[, 1:2]
-par(mfrow=c(1,2))
+##par(mfrow=c(1,2))
 
 ## library(flexclust)
 
 unkmeans.2 <- kmeans(firsttwo, 2, nstart = 20)
-ggplot(firsttwo, aes(pca.PC1, pca.PC2, color = factor(unkmeans.2$cluster))) + geom_point() +theme(legend.title = element_blank()) + ggtitle("K-means") 
+p5.1 = ggplot(firsttwo, aes(pca.PC1, pca.PC2, color = factor(unkmeans.2$cluster))) + geom_point() +theme(legend.title = element_blank()) + ggtitle("K-means") 
 
 unkcenter.2 <- kcenter(firsttwo,2)
-ggplot(firsttwo, aes(pca.PC1, pca.PC2, color = factor(unkcenter.2))) + geom_point() +theme(legend.title = element_blank()) + ggtitle("K-center") 
-
+p5.2 = ggplot(firsttwo, aes(pca.PC1, pca.PC2, color = factor(unkcenter.2))) + geom_point() +theme(legend.title = element_blank()) + ggtitle("K-center") 
 
 
 unkmeans.3 <- kmeans(firsttwo, 3, nstart = 20)
-ggplot(firsttwo, aes(pca.PC1, pca.PC2, color = factor(unkmeans.3$cluster))) + geom_point()+theme(legend.title = element_blank()) + ggtitle("K-means") 
+p5.3 = ggplot(firsttwo, aes(pca.PC1, pca.PC2, color = factor(unkmeans.3$cluster))) + geom_point()+theme(legend.title = element_blank()) + ggtitle("K-means") 
 
 unkcenter.3 <- kcenter(firsttwo,3)
-ggplot(firsttwo, aes(pca.PC1, pca.PC2, color = factor(unkcenter.3))) + geom_point() +theme(legend.title = element_blank()) + ggtitle("K-center")
+p5.4 = ggplot(firsttwo, aes(pca.PC1, pca.PC2, color = factor(unkcenter.3))) + geom_point() +theme(legend.title = element_blank()) + ggtitle("K-center")
 
 
 
 unkmeans.4 <- kmeans(firsttwo, 4, nstart = 20)
-ggplot(firsttwo, aes(pca.PC1, pca.PC2, color = factor(unkmeans.4$cluster))) + geom_point()+theme(legend.title = element_blank()) + ggtitle("K-means") 
+p5.5 = ggplot(firsttwo, aes(pca.PC1, pca.PC2, color = factor(unkmeans.4$cluster))) + geom_point()+theme(legend.title = element_blank()) + ggtitle("K-means") 
 
 unkcenter.4 <- kcenter(firsttwo,4)
-ggplot(firsttwo, aes(pca.PC1, pca.PC2, color = factor(unkcenter.4))) + geom_point() +theme(legend.title = element_blank()) + ggtitle("K-center")
+p5.6 = ggplot(firsttwo, aes(pca.PC1, pca.PC2, color = factor(unkcenter.4))) + geom_point() +theme(legend.title = element_blank()) + ggtitle("K-center")
 
 
 
 unkmeans.5 <- kmeans(firsttwo, 5, nstart = 20)
-ggplot(firsttwo, aes(pca.PC1, pca.PC2, color = factor(unkmeans.5$cluster))) + geom_point()+theme(legend.title = element_blank()) + ggtitle("K-means")
+p5.7 = ggplot(firsttwo, aes(pca.PC1, pca.PC2, color = factor(unkmeans.5$cluster))) + geom_point()+theme(legend.title = element_blank()) + ggtitle("K-means")
 
 unkcenter.5 <- kcenter(firsttwo,5)
-ggplot(firsttwo, aes(pca.PC1, pca.PC2, color = factor(unkcenter.5))) + geom_point() +theme(legend.title = element_blank()) + ggtitle("K-center")
+p5.8 = ggplot(firsttwo, aes(pca.PC1, pca.PC2, color = factor(unkcenter.5))) + geom_point() +theme(legend.title = element_blank()) + ggtitle("K-center")
 
 
 
 unkmeans.6 <- kmeans(firsttwo, 6, nstart = 20)
-ggplot(firsttwo, aes(pca.PC1, pca.PC2, color = factor(unkmeans.6$cluster))) + geom_point()+theme(legend.title = element_blank()) + ggtitle("K-means") 
+p5.9 = ggplot(firsttwo, aes(pca.PC1, pca.PC2, color = factor(unkmeans.6$cluster))) + geom_point()+theme(legend.title = element_blank()) + ggtitle("K-means") 
 
 unkcenter.6 <- kcenter(firsttwo,6)
-ggplot(firsttwo, aes(pca.PC1, pca.PC2, color = factor(unkcenter.6))) + geom_point() +theme(legend.title = element_blank()) + ggtitle("K-center")
+p5.10 = ggplot(firsttwo, aes(pca.PC1, pca.PC2, color = factor(unkcenter.6))) + geom_point() +theme(legend.title = element_blank()) + ggtitle("K-center")
 
 
 
 unkmeans.7 <- kmeans(firsttwo, 7, nstart = 20)
-ggplot(firsttwo, aes(pca.PC1, pca.PC2, color = factor(unkmeans.7$cluster))) + geom_point()+theme(legend.title = element_blank()) + ggtitle("K-means") 
+p5.11 = ggplot(firsttwo, aes(pca.PC1, pca.PC2, color = factor(unkmeans.7$cluster))) + geom_point()+theme(legend.title = element_blank()) + ggtitle("K-means") 
 
 unkcenter.7 <- kcenter(firsttwo,7)
-ggplot(firsttwo, aes(pca.PC1, pca.PC2, color = factor(unkcenter.7))) + geom_point() +theme(legend.title = element_blank()) + ggtitle("K-center")
+p5.12 = ggplot(firsttwo, aes(pca.PC1, pca.PC2, color = factor(unkcenter.7))) + geom_point() +theme(legend.title = element_blank()) + ggtitle("K-center")
 
 
 
 unkmeans.8 <- kmeans(firsttwo, 8, nstart = 20)
-ggplot(firsttwo, aes(pca.PC1, pca.PC2, color = factor(unkmeans.8$cluster))) + geom_point()+theme(legend.title = element_blank()) + ggtitle("K-means") 
+p5.13 = ggplot(firsttwo, aes(pca.PC1, pca.PC2, color = factor(unkmeans.8$cluster))) + geom_point()+theme(legend.title = element_blank()) + ggtitle("K-means") 
 
 unkcenter.8 <- kcenter(firsttwo,8)
-ggplot(firsttwo, aes(pca.PC1, pca.PC2, color = factor(unkcenter.8))) + geom_point() +theme(legend.title = element_blank()) + ggtitle("K-center")
+p5.14 = ggplot(firsttwo, aes(pca.PC1, pca.PC2, color = factor(unkcenter.8))) + geom_point() +theme(legend.title = element_blank()) + ggtitle("K-center")
 
 
 
 unkmeans.9 <- kmeans(firsttwo, 9, nstart = 20)
-ggplot(firsttwo, aes(pca.PC1, pca.PC2, color = factor(unkmeans.9$cluster))) + geom_point()+theme(legend.title = element_blank()) + ggtitle("K-means") 
+p5.15 = ggplot(firsttwo, aes(pca.PC1, pca.PC2, color = factor(unkmeans.9$cluster))) + geom_point()+theme(legend.title = element_blank()) + ggtitle("K-means") 
 
 unkcenter.9 <- kcenter(firsttwo,9)
-ggplot(firsttwo, aes(pca.PC1, pca.PC2, color = factor(unkcenter.9))) + geom_point() +theme(legend.title = element_blank()) + ggtitle("K-center")
+p5.16 = ggplot(firsttwo, aes(pca.PC1, pca.PC2, color = factor(unkcenter.9))) + geom_point() +theme(legend.title = element_blank()) + ggtitle("K-center")
 
 
 
 unkmeans.10 <- kmeans(firsttwo, 10, nstart = 20)
-ggplot(firsttwo, aes(pca.PC1, pca.PC2, color = factor(unkmeans.10$cluster))) + geom_point()+theme(legend.title = element_blank()) + ggtitle("K-means")
+p5.17 = ggplot(firsttwo, aes(pca.PC1, pca.PC2, color = factor(unkmeans.10$cluster))) + geom_point()+theme(legend.title = element_blank()) + ggtitle("K-means")
 
 unkcenter.10 <- kcenter(firsttwo,10)
-ggplot(firsttwo, aes(pca.PC1, pca.PC2, color = factor(unkcenter.10))) + geom_point() +theme(legend.title = element_blank()) + ggtitle("K-center")
-
+p5.18 = ggplot(firsttwo, aes(pca.PC1, pca.PC2, color = factor(unkcenter.10))) + geom_point() +theme(legend.title = element_blank()) + ggtitle("K-center")
+grid.arrange(p5.1,p5.2, p5.3,p5.4, ncol=2)
+# grid.arrange(p5.3,p5.4,ncol=2)
+grid.arrange(p5.5,p5.6, p5.7,p5.8, ncol=2)
+# grid.arrange(p5.7,p5.7,ncol=2)
+grid.arrange(p5.9,p5.10,p5.11,p5.12, ncol=2)
+# grid.arrange(p5.11,p5.12,ncol=2)
+grid.arrange(p5.13,p5.14,p5.15,p5.16, ncol=2)
+# grid.arrange(p5.15,p5.16,ncol=2)
+grid.arrange(p5.17,p5.18,ncol=2)
 
 
 
@@ -398,3 +433,18 @@ https://www.r-bloggers.com/k-means-clustering-in-r/
 
 
 
+# Conclusions 
+
+To sum up, we finisehd the following analysis in this project.
+
+* The K-means clustering method on both the original and dimension reduced training and testing data, both showing similar accuracies of about `r round(mean(acc.test, acc.test.PCA), 2) * 100`% for the testing data.
+
+* Confirmed a cluster size of `r k = 3` by examining the Within Sums of Squares values. 
+
+* The supervised K-nearest clustering method achieved over 90% accuracy in both training and test data, which is satisfying. 
+
+* Applying differet k values, we explored the contrasting difference between k-means and k-center clustering methods.  
+
+# Contributions 
+
+The different tasks required to complete this project were equally divided between Meridith and Fei. K-means and cross-valiation analyses were completed by Meridith while Fei was responsible for K-nearest and K-center comparison. Both members of this group contributed to this report. 
