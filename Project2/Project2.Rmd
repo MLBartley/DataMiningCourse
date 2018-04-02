@@ -1,16 +1,16 @@
 ---
 title: "Project 2"
 output:
-  word_document: default
   pdf_document:
     keep_tex: yes
     latex_engine: xelatex
   html_notebook: default
+  word_document: default
 ---
 
 #Introduction
 
-This is Project 2 for STAT 557 2018 Spring by Meridith Bartley and Fei Jiang. The aim of this project is to practice the k-means algorithm and the k-nearest neighbor algorithm. In this project we applied {METHOD} to {WHAT TYPE} data in order to {ACHEIVE WHAT}. 
+This is Project 2 for STAT 557 2018 Spring by Meridith Bartley and Fei Jiang. The aim of this project is to practice the k-means algorithm and the k-nearest neighbor algorithm. In this project we applied both algorithms to seed data in order to classify/cluster by seed type. 
 
 #Description of Data
 
@@ -21,6 +21,7 @@ Boxplots for each attribute used as explanitory variables in the subsequent clas
 ```{r packages to load, include=FALSE}
 library(dplyr)
 library(ggplot2)
+library(flexclust)
 library(grid)
 library(gridExtra)
 library(magrittr)
@@ -28,6 +29,57 @@ library(cluster)
 library(fpc)
 library(FNN)
 ```
+
+```{r functions, include=FALSE}
+
+calculate.confusion <- function(states, clusters)
+{
+  # generate a confusion matrix of cols C versus states S
+  d <- data.frame(state = states, cluster = clusters)
+  td <- as.data.frame(table(d))
+  # convert from raw counts to percentage of each label
+  pc <- matrix(ncol=max(clusters),nrow=0) # k cols
+  for (i in 1:3) # 9 labels
+  {
+    total <- sum(td[td$state==td$state[i],3])
+    pc <- rbind(pc, td[td$state==td$state[i],3]/total)
+  }
+  rownames(pc) <- td[1:3,1]
+  return(pc)
+}
+
+assign.cluster.labels <- function(cm, k)
+{
+  # take the cluster label from the highest percentage in that column
+  cluster.labels <- list()
+  for (i in 1:k)
+  {
+    cluster.labels <- rbind(cluster.labels, row.names(cm)[match(max(cm[,i]), cm[,i])])
+  }
+
+  # this may still miss some labels, so make sure all labels are included
+  for (l in rownames(cm)) 
+  { 
+    if (!(l %in% cluster.labels)) 
+    { 
+      cluster.number <- match(max(cm[l,]), cm[l,])
+      cluster.labels[[cluster.number]] <- c(cluster.labels[[cluster.number]], l)
+    } 
+  }
+  return(cluster.labels)
+}
+
+calculate.accuracy <- function(states, clabels)
+{
+  matching <- Map(function(state, labels) { state %in% labels }, states, clabels)
+  tf <- unlist(matching, use.names=FALSE)
+  return (sum(tf)/length(tf))
+}
+
+
+```
+
+
 
 
 ```{r load code and clean, include=FALSE, echo = F, message = F}
@@ -112,7 +164,7 @@ In the following analysis with two methods (k means and k-nearest neighbor algor
  
  
 
-##K-Means Algorithm - Unsupervised clustering of Origianl Dataset
+##K-Means Algorithm - Unsupervised clustering of Original Dataset
 
 
 ```{r include=FALSE}
@@ -123,72 +175,139 @@ train_id <- caret::createDataPartition(y=project2data$type, p=0.8,list = FALSE)
 
 p2d_test <- project2data[-train_id, -8]
 p2d_train <- project2data[train_id, -8]
-p2d_testlabels <- project2data[-train_id, 8]
-p2d_trainlabels <- project2data[train_id, 8]
+p2d_testlabels <- as.factor(project2data[-train_id, 8])
+p2d_trainlabels <- as.factor(project2data[train_id, 8])
 
 ```
 
 
-```{r, echo =FALSE}
-km <- kmeans(project2data[, -8], 3)
+```{r, echo =FALSE, warning = FALSE, results= FALSE }
+km.all <-list()
+acc.test.all <- matrix(ncol = 2, nrow = 0)
 
-knitr::kable(table(data.frame(project2data$type, km$cluster)))
+for (k in 2:10) {
+km.all[[k]] <- kmeans(p2d_train, k)
+pred.all <- predict(as.kcca(km.all[[k]], data = p2d_train), newdata = p2d_test)
+cm.all <- calculate.confusion(states = p2d_testlabels, clusters = pred.all)
+labels.all <- assign.cluster.labels(cm.all, k)
+acc.test.all <- rbind(acc.test.all, c(k, calculate.accuracy(p2d_testlabels, labels.all[pred.all])))
+}
 
-plotcluster(project2data[, -8], km$cluster)
+# km = kcca(p2d_train, k=3, kccaFamily("kmeans"))
+# km
+# 
+# pred_train <- predict(km)
+# pred_test <- predict(km, newdata=p2d_test)
+# 
+# image(km)
+# points(p2d_train, col=pred_train, pch=19, cex=0.3)
+# points(p2d_test, col=pred_test, pch=22, bg="orange")
+# 
 
-clusplot(project2data[, -8], km$cluster, color=TRUE, shade=TRUE, 
-         labels=2, lines=0)
+km <- kmeans(p2d_train, 3)
+cm <- calculate.confusion(states = p2d_trainlabels, clusters = km$cluster)
+pred_train_labeled <- assign.cluster.labels(cm, 3)
 
-with(project2data[, -8], pairs(project2data[, -8], col=c(1:3)[km$cluster])) 
+acc.train <- calculate.accuracy(p2d_trainlabels, pred_train_labeled[km$cluster])
 
 
+km.test <- kmeans(p2d_test, 3)
+cm.test <- calculate.confusion(states = p2d_testlabels, clusters = km.test$cluster)
+pred_test_labeled <- assign.cluster.labels(cm.test, 3)
+
+
+acc.test <- calculate.accuracy(p2d_testlabels, pred_test_labeled[km.test$cluster])
+
+test.PCA <- project2data.new[-train_id, ]
+train.PCA <- project2data.new[train_id, ]
+
+
+km.PCA <- kmeans(train.PCA[, 1:2], 3)
+cm.PCA <- calculate.confusion(states = train.PCA[, 3], clusters = km.PCA$cluster)
+pred_train_labeled.PCA <- assign.cluster.labels(cm.PCA, 3)
+
+acc.train.PCA <- calculate.accuracy(train.PCA[, 3], pred_train_labeled.PCA[km.PCA$cluster])
+
+
+km.test.PCA <- kmeans(test.PCA[, 1:2], 3)
+cm.test.PCA <- calculate.confusion(states = test.PCA[, 3], clusters = km.test.PCA$cluster)
+pred_test_labeled.PCA <- assign.cluster.labels(cm.test.PCA, 3)
+
+
+acc.test.PCA <- calculate.accuracy(test.PCA[, 3], pred_test_labeled.PCA[km.test.PCA$cluster])
+
+
+
+
+```
+
+
+When conducting the k-means algorthm with `r k = 3` on the original dataset and found that the overall prediction accuracy of our model in testing data is about `r round(acc.test, 2) * 100`%. In addition, we applied the k-means algorithem to a dimension reduced data set using the first two principal compoents and found that with the testing data there was about `r round(acc.test.PCA, 2) * 100`% accuracy.  In the following plot we can see the cluster plot that uses PCA to draw the data using the first two principal components to explain the data. 
+
+
+```{r, inckude = FALSE, echo=FALSE           }
+km <- kmeans(p2d_train, 3)
+
+# knitr::kable(table(data.frame(p2d_trainlabels, km$cluster)))
+
+# plotcluster(p2d_train, km$cluster)
+
+clusplot(p2d_train, km$cluster, color=TRUE, shade=TRUE,
+         labels=1, lines=0)
+#
+# with(p2d_train, pairs(p2d_train, col=c(1:3)[km$cluster]))
+
+```
+ 
+While we have reported the outcomes for k = 3, we also explored the possibilities of other size selections for k (see below table for comparison of accuracies). We also looked at total Within Groups Sums of Squares as a measure of how well our clusters fit the data. This is a measure of the distance the vectors in each cluster are from their respected centroid.The goal is to minimiza this value but no further than when the rate of improvement drops off. The scree plot below of these WSS values do indicate that `r k = 3` is an appropraite number of clusters to choose. Indeed we do know from the data available that there are three seed types included.  
+
+```{r echo=FALSE}
+### compare accuracies
+colnames(acc.test.all) <- c("K", "% Accuracy")
+acc.test.all[, 2] <- round(acc.test.all[,2], 2) * 100
+knitr::kable((acc.test.all[-10, ]))
 ```
 
 
 ```{r, echo=FALSE, message = F, results = 'hide', fig.keep='all', fig.width = 8}
 
 
+WSS. <- sapply(1:10, function(i){return(kmeans(project2data[, -8], centers = i)$tot.withinss)})
+cbind(No.of.Cluters=1:10, WSS.)
 
-WSS. <- sapply(1:15, function(i){return(kmeans(project2data[, -8], centers = i)$tot.withinss)})
-cbind(No.of.Cluters=1:15, WSS.)
-
-plot(1:15, WSS., type="l", xlab = "No. of clusters", ylab = "Total WSS", main = "Scree Plot")
+plot(1:10, WSS., type="l", xlab = "No. of clusters", ylab = "Total WSS", main = "Scree Plot")
 
 ```
 
 ## K-Nearest Neighbor - Supervised clustering in Original Dataset
 
-In this section, supervised K-nearest clustering is applied in the original dataset. The true and predictied lables in training and test data are shown in the figures below. In those figures, only first two predictors were shown. In general, in the training data, we obtained the accuracy rate of 92.9% and in the testing data, the accuarcy rate is about 90.5%. We think we reached a satisfying accuracy rate. 
+In this section, supervised K-nearest clustering is applied in the original dataset. The true and predictied lables in training and test data are shown in the figures below. In those figures, only first two predictors were shown. In general, in the training data, we obtained the accuracy rate of 92.9% and in the testing data, the accuarcy rate is about 90.5%. We think we reached a satisfying accuracy rate.
 
-```{r - Fei , echo=FALSE, message = F, results = 'hide', fig.keep='all'}
+In the following plots we explore the true labels compared to those predicted by K-nearest neighbor clustering. We do this for both the original training and testing datasets. Not that we have plotted the data by area and the asymmetrical coefficent. It's clear that this method of clusing the data is performing well. 
+
+```{r - Fei, echo=FALSE, message = F, results = 'hide', fig.keep='all'}
 knn_train = knn(train=p2d_train,p2d_train,cl=p2d_trainlabels, k = 3)
 cm_train = as.matrix(table(Actual = p2d_trainlabels, Predicted = knn_train))
 train_acc= sum(diag(cm_train))/length(p2d_trainlabels)
 
 #par(mfrow=c(1,2))
-knn.1 = ggplot(p2d_train, aes(area, perimeter, color = factor(p2d_trainlabels))) + geom_point() +theme(legend.title = element_blank()) + ggtitle("True labels in Training data") 
-knn.2 = ggplot(p2d_train, aes(area, perimeter, color = factor(knn_train))) + geom_point() +theme(legend.title = element_blank()) + ggtitle("K-nearest Prediction labels in Training data") 
+knn.1 = ggplot(p2d_train, aes(area, asymcoef, color = factor(p2d_trainlabels))) + geom_point() +theme(legend.title = element_blank()) + ggtitle("True labels in Training data") 
+knn.2 = ggplot(p2d_train, aes(area, asymcoef, color = factor(knn_train))) + geom_point() +theme(legend.title = element_blank()) + ggtitle("K-nearest Prediction labels in Training data") 
 
 knn_test = knn(train=p2d_train, test=p2d_test, cl=p2d_trainlabels, k = 3)
 cm_test = as.matrix(table(Actual = p2d_testlabels, Predicted = knn_test))
 test_acc= sum(diag(cm_test))/length(p2d_testlabels)
 
 #par(mfrow=c(1,2))
-knn.3 = ggplot(p2d_test, aes(area, perimeter, color = factor(p2d_testlabels))) + geom_point() +theme(legend.title = element_blank()) + ggtitle("True labels in Test data") 
-knn.4 = ggplot(p2d_test, aes(area, perimeter, color = factor(knn_test))) + geom_point() +theme(legend.title = element_blank()) + ggtitle("K-nearest Prediction labels in Test data") 
+knn.3 = ggplot(p2d_test, aes(area, asymcoef, color = factor(p2d_testlabels))) + geom_point() +theme(legend.title = element_blank()) + ggtitle("True labels in Test data") 
+knn.4 = ggplot(p2d_test, aes(area, asymcoef, color = factor(knn_test))) + geom_point() +theme(legend.title = element_blank()) + ggtitle("K-nearest Prediction labels in Test data") 
 
-grid.arrange(knn.1, knn.2, ncol=2)
-grid.arrange(knn.3, knn.4, ncol=2)
+grid.arrange(knn.1, knn.2, knn.3, knn.4, ncol=2)
+# grid.arrange(knn.3, knn.4, ncol=2)
 ```
 
 
 
-<!-- USEFUL LINKS
-http://cowlet.org/2013/12/23/understanding-data-science-clustering-with-k-means-in-r.html
-https://stats.stackexchange.com/questions/31083/how-to-produce-a-pretty-plot-of-the-results-of-k-means-cluster-analysis
-https://www.r-bloggers.com/k-means-clustering-in-r/
-
--->
 
 
 ##K-Means and K-Centers Algorithm - Unsupervised clustering in Reduced Dataset (First Two Principle Components)
@@ -305,28 +424,43 @@ p5.17 = ggplot(firsttwo, aes(pca.PC1, pca.PC2, color = factor(unkmeans.10$cluste
 
 unkcenter.10 <- kcenter(firsttwo,10)
 p5.18 = ggplot(firsttwo, aes(pca.PC1, pca.PC2, color = factor(unkcenter.10))) + geom_point() +theme(legend.title = element_blank()) + ggtitle("K-center")
-
-grid.arrange(p5.1,p5.2,ncol=2)
-grid.arrange(p5.3,p5.4,ncol=2)
-grid.arrange(p5.5,p5.6,ncol=2)
-grid.arrange(p5.7,p5.7,ncol=2)
-grid.arrange(p5.9,p5.10,ncol=2)
-grid.arrange(p5.11,p5.12,ncol=2)
-grid.arrange(p5.13,p5.14,ncol=2)
-grid.arrange(p5.15,p5.16,ncol=2)
+grid.arrange(p5.1,p5.2, p5.3,p5.4, ncol=2)
+# grid.arrange(p5.3,p5.4,ncol=2)
+grid.arrange(p5.5,p5.6, p5.7,p5.8, ncol=2)
+# grid.arrange(p5.7,p5.7,ncol=2)
+grid.arrange(p5.9,p5.10,p5.11,p5.12, ncol=2)
+# grid.arrange(p5.11,p5.12,ncol=2)
+grid.arrange(p5.13,p5.14,p5.15,p5.16, ncol=2)
+# grid.arrange(p5.15,p5.16,ncol=2)
 grid.arrange(p5.17,p5.18,ncol=2)
 
 
+
 ```
+
+
+
+<!-- USEFUL LINKS
+http://cowlet.org/2013/12/23/understanding-data-science-clustering-with-k-means-in-r.html
+https://stats.stackexchange.com/questions/31083/how-to-produce-a-pretty-plot-of-the-results-of-k-means-cluster-analysis
+https://www.r-bloggers.com/k-means-clustering-in-r/
+
+-->
+
+
 
 # Conclusions 
 
 To sum up, we finisehd the following analysis in this project.
 
-4) The supervised K-nearest clustering method achieved over 90% accuracy in both training and test data, which is satisfying. 
+* The K-means clustering method on both the original and dimension reduced training and testing data, both showing similar accuracies of about `r round(mean(acc.test, acc.test.PCA), 2) * 100`% for the testing data.
 
-5) Applying differet k values, we explored the contrasting difference between k-means and k-center clustering methods.  
+* Confirmed a cluster size of `r k = 3` by examining the Within Sums of Squares values. 
+
+* The supervised K-nearest clustering method achieved over 90% accuracy in both training and test data, which is satisfying. 
+
+* Applying differet k values, we explored the contrasting difference between k-means and k-center clustering methods.  
 
 # Contributions 
 
-The different tasks required to complete this project were equally divided between Meridith and Fei. K-means and cross-valiation analyses were completed by Meridith while Fei was responsible for K-nearest and K-center comparison. Both members of this group contributed to the presentation slides and this report. 
+The different tasks required to complete this project were equally divided between Meridith and Fei. K-means and cross-valiation analyses were completed by Meridith while Fei was responsible for K-nearest and K-center comparison. Both members of this group contributed to this report. 
