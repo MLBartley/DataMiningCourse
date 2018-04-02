@@ -1,0 +1,61 @@
+---
+title: "Project 3"
+output:
+  pdf_document:
+    keep_tex: yes
+    latex_engine: xelatex
+  html_notebook: default
+  word_document: default
+---
+
+#Introduction
+
+This is Project 3 for STAT 557 2018 Spring by Meridith Bartley and Fei Jiang. The aim of this project is to implement a tree structured classifier using the splitting method in CART and a chosen split stopping criterion and then apply this classifier to a data set. 
+
+#Description of Data
+
+This car evaluation dataset is developed by Marko Bohanec and Blaz Zupan (1997). The response variable is the condition of a car which has four classes: unacceptable, acceptable, good, very good. There are six predictors to develop the model: buying price, price of the maintenance, number of doors, capacity in terms of persons to carry, the size of luggage boot, and estomated safety of the car. 
+
+```{r packages to load, include=FALSE}
+library(dplyr)
+library(ggplot2)
+library(flexclust)
+library(grid)
+library(gridExtra)
+library(magrittr)
+library(cluster)
+library(fpc)
+library(FNN)
+```
+
+```{r functions, include=FALSE}
+
+
+
+```
+
+#Analysis
+
+In the following analysis with two methods (k means and k-nearest neighbor algorithms - both supervised and unsupervised) and two datasets (original and dimension-reduced), we randomly selected 80% of the entire data as training data and the rest 20% as test data.   
+ 
+ 
+
+##K-Means Algorithm - Unsupervised clustering of Original Dataset
+
+
+
+# Conclusions 
+
+To sum up, we finisehd the following analysis in this project.
+
+* The K-means clustering method on both the original and dimension reduced training and testing data, both showing similar accuracies of about `r round(mean(acc.test, acc.test.PCA), 2) * 100`% for the testing data.
+
+* Confirmed a cluster size of `r k = 3` by examining the Within Sums of Squares values. 
+
+* The supervised K-nearest clustering method achieved over 90% accuracy in both training and test data, which is satisfying. 
+
+* Applying differet k values, we explored the contrasting difference between k-means and k-center clustering methods.  
+
+# Contributions 
+
+The different tasks required to complete this project were equally divided between Meridith and Fei. K-means and cross-valiation analyses were completed by Meridith while Fei was responsible for K-nearest and K-center comparison. Both members of this group contributed to this report. 
