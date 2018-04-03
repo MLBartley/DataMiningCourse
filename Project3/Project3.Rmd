@@ -29,10 +29,11 @@ library(FNN)
 ```
 
 ```{r functions, include=FALSE}
-
+p3data = read.csv("car.csv", header=F) 
 
 
 ```
+## Exploritory Data Analysis
 
 #Analysis
 
