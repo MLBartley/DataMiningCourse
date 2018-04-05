@@ -14,7 +14,7 @@ This is Project 3 for STAT 557 2018 Spring by Meridith Bartley and Fei Jiang. Th
 
 #Description of Data
 
-This car evaluation dataset is developed by Marko Bohanec and Blaz Zupan (1997). The response variable is the condition of a car which has four classes: unacceptable, acceptable, good, very good. There are six predictors to develop the model: buying price, price of the maintenance, number of doors, capacity in terms of persons to carry, the size of luggage boot, and estomated safety of the car. #https://rpubs.com/minma/cart_with_rpart# 
+This car evaluation dataset is developed by Marko Bohanec and Blaz Zupan (1997). The response variable is the condition of a car which has two classes: unacceptable and acceptable. There are six predictors to develop the model: buying price, price of the maintenance, number of doors, capacity in terms of persons to carry, the size of luggage boot, and estomated safety of the car. #https://rpubs.com/minma/cart_with_rpart# 
 
 
 
