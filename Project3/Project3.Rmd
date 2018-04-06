@@ -20,6 +20,7 @@ This car evaluation dataset is developed by Marko Bohanec and Blaz Zupan (1997).
 
 ```{r packages to load, include=FALSE}
 library(dplyr)
+library(plyr)
 library(ggplot2)
 library(flexclust)
 library(grid)
@@ -28,17 +29,96 @@ library(magrittr)
 library(cluster)
 library(fpc)
 library(FNN)
+library(rpart)
+library(rpart.plot)
 ```
 
 ```{r functions, include=FALSE}
-p3data = read.csv("car.csv", header=F) 
+p3data = read.csv("car.csv", header=T) 
 
 
 ```
 ## Exploritory Data Analysis
 
-#Analysis
 
+```{r EDA - Fei, echo=FALSE, message = F, results = 'hide', fig.keep='all', fig.width = 8}
+
+buying = count(p3data, c("buying", "condition"))
+p1= ggplot(buying,aes(x = condition,y = freq ,fill = buying))+
+  geom_bar(stat="identity",position="dodge")+
+  xlab("Condition")+ylab("Frequency")
+
+maint = count(p3data, c("maint", "condition"))
+p2=ggplot(maint,aes(x = condition,y = freq ,fill = maint))+
+  geom_bar(stat="identity",position="dodge")+
+  xlab("Condition")+ylab("Frequency")
+
+lug_boot = count(p3data, c("lug_boot", "condition"))
+p3=ggplot(lug_boot,aes(x = condition,y = freq ,fill = lug_boot))+
+  geom_bar(stat="identity",position="dodge")+
+  xlab("Condition")+ylab("Frequency")
+
+safety = count(p3data, c("safety", "condition"))
+p4=ggplot(safety,aes(x = condition,y = freq ,fill = safety))+
+  geom_bar(stat="identity",position="dodge")+
+  xlab("Condition")+ylab("Frequency")
+
+p5=ggplot(p3data,aes(x = condition,y = doors ))+
+  geom_boxplot() +
+  xlab("Condition")+ylab("Num of doors")
+
+p6=ggplot(p3data,aes(x = condition,y = persons ))+
+  geom_boxplot() +
+  xlab("Condition")+ylab("Num of persons")
+
+grid.arrange(p1,p2,p3,p4, ncol=2)
+grid.arrange(p5,p6, ncol=2)
+
+```
+
+#Analysis
+## Pseudo-code of the tree structured classifier
+
+## Apply tree classifier to the example dataset
+
+```{r Classifier - Fei, echo=FALSE, message = F, results = 'hide', fig.keep='all', fig.width = 8}
+
+# partition training and test data
+train_id <- caret::createDataPartition(y=p3data$condition, p=0.8,list = FALSE)
+train = p3data[train_id,]
+test = p3data[-train_id,]
+
+# Step1: Begin with a small cp. 
+tree = rpart(condition ~., data= train, control = rpart.control(cp = 0.0001))
+printcp(tree)
+prp(tree)
+
+# Step2: Pick the tree size that minimizes misclassification rate (i.e. prediction error).
+# Prediction error rate in training data = Root node error * rel error * 100%
+# Prediction error rate in cross-validation = Root node error * xerror * 100%
+# Hence we want the cp value (with a simpler tree) that minimizes the xerror. 
+bestcp <- tree$cptable[which.min(tree$cptable[,"xerror"]),"CP"]
+
+# Step3: Prune the tree using the best cp.
+tree.pruned <- prune(tree, cp = bestcp)
+prp(tree.pruned)
+
+# confusion matrix (training data)
+conf.matrix <- table(train$condition,predict(tree.pruned,type="class"))
+rownames(conf.matrix) <- paste("Actual", rownames(conf.matrix), sep = ":")
+colnames(conf.matrix) <- paste("Pred", colnames(conf.matrix), sep = ":")
+print(conf.matrix)
+
+# apply to test data
+test.predict = predict(tree.pruned, newdata=test)
+
+# confusion matrix (test data)
+tconf.matrix <- table(test$condition,predict(tree.pruned,type="class",newdata=test))
+rownames(tconf.matrix) <- paste("Actual", rownames(tconf.matrix), sep = ":")
+colnames(tconf.matrix) <- paste("Pred", colnames(tconf.matrix), sep = ":")
+print(tconf.matrix)
+
+```
 
  
 
