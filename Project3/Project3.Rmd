@@ -1,10 +1,10 @@
 ---
 title: "Project 3"
 output:
+  html_notebook: default
   pdf_document:
     keep_tex: yes
     latex_engine: xelatex
-  html_notebook: default
   word_document: default
 ---
 
@@ -14,9 +14,11 @@ This is Project 3 for STAT 557 2018 Spring by Meridith Bartley and Fei Jiang. Th
 
 #Description of Data
 
-This car evaluation dataset is developed by Marko Bohanec and Blaz Zupan (1997). The response variable is the condition of a car which has two classes: unacceptable and acceptable. There are six predictors to develop the model: buying price, price of the maintenance, number of doors, capacity in terms of persons to carry, the size of luggage boot, and estomated safety of the car. #https://rpubs.com/minma/cart_with_rpart# 
+This car evaluation dataset is developed by Marko Bohanec and Blaz Zupan (1997). The response variable is the condition of a car which has two classes: unacceptable and acceptable. There are six predictors to develop the model: buying price, price of the maintenance, number of doors, capacity in terms of persons to carry, the size of luggage boot, and estimated safety of the car. #https://rpubs.com/minma/cart_with_rpart# 
 
+Boxplots for each numeric attribute (doors, persons) used as explanitory variables in the subsequent classification models are included below. This EDA allows for early indication of which variables may possibly be ommitted during dimention reduction. That is, what properties do not differ significantly between safety classifications.
 
+ An initial examination of the data reveals no missing data (as no NA values were present). Also, the already present classification indicates that 518 cars (30\% of the given data) were in an acceptable condition, while the remaining 1210 cars (70\% of the given data) are seen to be unacceptable.
 
 ```{r packages to load, include=FALSE}
 library(dplyr)
@@ -39,7 +41,6 @@ p3data = read.csv("car.csv", header=T)
 
 ```
 ## Exploritory Data Analysis
-
 
 ```{r EDA - Fei, echo=FALSE, message = F, results = 'hide', fig.keep='all', fig.width = 8}
 
@@ -78,7 +79,24 @@ grid.arrange(p5,p6, ncol=2)
 
 #Analysis
 
+In this project, we will use random forest classification to classify the given data into acceptable and unaccepable conditions. In addition, we shall check whether dimension reduction approaches in the form of principal component analysis (PCA) improve classification performance. Wedivide the given data into test data (20\% of the given data) and training data (80\% of the given data) after randomizing the overall dataset. Effectiveness will be determined by assessing the total misclassification rate on the training and test data for each method. We implement our classification method on different subsets of data (generated via dimension reduction methods),  and the results shall be collectively summarized.
+
+A tree based method can be used to predict the expected value of either a qualitative response (classification tree) or a quantitative response (regression trees). However, as our given data set has a qualitative response, we shall focus on classification trees. We predict that each observation belongs to the most commonly occurring class of training observations in the region to which it belongs. In interpreting the results of a classification tree, we are often interested not only in the class prediction corresponding to a particular terminal node region, but also in the class proportions among the training observations that fall into that region. Since we plan to assign an observation in a given region to the most commonly occurring class of training observations in that region, the classification error rate is simply the fraction of the training observations in that region that do not belong to the most common class.
+
 ## Pseudo-code of the tree structured classifier
+
+Random Forests grow many classification trees and combine them together for an aggregated result. To classify a new object from an input vector, we place the input vector down each of the trees in the forest. Each tree gives a certain classification as output, and we say the tree "votes" for that class. The forest then chooses the classification having the most votes (over all the trees in the forest). Therefore, the random forest algorithm is an ensemble learning method for classification, regression and other tasks, that operates by constructing a multitude of decision trees at training time and outputting the class that is the mode of the classes of the individual trees. Random decision forests correct for decision trees' habit of over-fitting to their training set. Each tree is grown as follows:
+
+
+1. A single variable is found which best splits the data into two groups (‘best’ will be defined later). 
+
+2. The data is separated, and then this process is applied separately to each sub-group. 
+
+3. Continue recursively until the subgroups either reach a minimum size or until no improvement can be made.
+
+4. Pick the tree size that minimizes misclassification rate (i.e. prediction error).
+
+5. Prune the tree using the best complexity parameter.
 
 ## Apply tree classifier to the example dataset
 
@@ -119,12 +137,9 @@ rownames(tconf.matrix) <- paste("Actual", rownames(tconf.matrix), sep = ":")
 colnames(tconf.matrix) <- paste("Pred", colnames(tconf.matrix), sep = ":")
 print(tconf.matrix)
 
+knitr::kable(tconf.matrix)
+
 ```
-
- 
-
-
-
 
 
 # Conclusions 
@@ -133,4 +148,4 @@ print(tconf.matrix)
 
 # Contributions 
 
-The different tasks required to complete this project were equally divided between Meridith and Fei.Both members of this group contributed to this report. 
+The different tasks required to complete this project were equally divided between Meridith and Fei. Both members of this group contributed to this report and the presentation. 
