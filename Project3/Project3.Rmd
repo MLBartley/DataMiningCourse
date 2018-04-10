@@ -85,8 +85,7 @@ A tree based method can be used to predict the expected value of either a qualit
 
 ## Pseudo-code of the tree structured classifier
 
-Random Forests grow many classification trees and combine them together for an aggregated result. To classify a new object from an input vector, we place the input vector down each of the trees in the forest. Each tree gives a certain classification as output, and we say the tree "votes" for that class. The forest then chooses the classification having the most votes (over all the trees in the forest). Therefore, the random forest algorithm is an ensemble learning method for classification, regression and other tasks, that operates by constructing a multitude of decision trees at training time and outputting the class that is the mode of the classes of the individual trees. Random decision forests correct for decision trees' habit of over-fitting to their training set. Each tree is grown as follows:
-
+ Each tree is grown as follows:
 
 1. A single variable is found which best splits the data into two groups (‘best’ will be defined later). 
 
@@ -143,6 +142,9 @@ knitr::kable(tconf.matrix)
 
 
 # Conclusions 
+
+<!-- Describe the decision tree obtained for your dataset: what are the candidate splits used, what are the splits in the tree, what is the goodness of every split, how many training and testing samples fall into each node, what is the resubstitution error rate of the tree. -->
+
 
 
 
