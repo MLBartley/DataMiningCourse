@@ -119,7 +119,13 @@ bestcp <- tree$cptable[which.min(tree$cptable[,"xerror"]),"CP"]
 
 # Step3: Prune the tree using the best cp.
 tree.pruned <- prune(tree, cp = bestcp)
-prp(tree.pruned)
+
+tot_count <- function(x, labs, digits, varlen)
+{
+  paste(labs, "\n\nn =", x$frame$n)
+}
+
+prp(tree.pruned,  faclen = 0, cex = 0.8, node.fun=tot_count)
 
 # confusion matrix (training data)
 conf.matrix <- table(train$condition,predict(tree.pruned,type="class"))
@@ -127,6 +133,7 @@ rownames(conf.matrix) <- paste("Actual", rownames(conf.matrix), sep = ":")
 colnames(conf.matrix) <- paste("Pred", colnames(conf.matrix), sep = ":")
 print(conf.matrix)
 
+knitr::kable(conf.matrix)
 # apply to test data
 test.predict = predict(tree.pruned, newdata=test)
 
