@@ -147,6 +147,7 @@ rownames(conf.matrix) <- paste("Actual", rownames(conf.matrix), sep = ":")
 colnames(conf.matrix) <- paste("Pred", colnames(conf.matrix), sep = ":")
 print(conf.matrix)
 
+knitr::kable(conf.matrix)
 # apply to test data
 test.predict = predict(tree.pruned, newdata=test)
 
