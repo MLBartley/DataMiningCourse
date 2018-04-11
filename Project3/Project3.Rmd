@@ -14,11 +14,12 @@ This is Project 3 for STAT 557 2018 Spring by Meridith Bartley and Fei Jiang. Th
 
 #Description of Data
 
-This car evaluation dataset is developed by Marko Bohanec and Blaz Zupan (1997). The response variable is the condition of a car which has two classes: unacceptable and acceptable. There are six predictors to develop the model: buying price, price of the maintenance, number of doors, capacity in terms of persons to carry, the size of luggage boot, and estimated safety of the car. #https://rpubs.com/minma/cart_with_rpart# 
+This car evaluation dataset is developed by Marko Bohanec and Blaz Zupan (1997). The response variable is the condition of a car which has two classes: unacceptable and acceptable. There are six predictors to develop the model: buying price, price of the maintenance, number of doors, capacity in terms of persons to carry, the size of luggage boot, and estimated safety of the car.
+<!-- #https://rpubs.com/minma/cart_with_rpart# -->
 
 Boxplots for each numeric attribute (doors, persons) used as explanitory variables in the subsequent classification models are included below. This EDA allows for early indication of which variables may possibly be ommitted during dimention reduction. That is, what properties do not differ significantly between safety classifications.
 
- An initial examination of the data reveals no missing data (as no NA values were present). Also, the already present classification indicates that 518 cars (30\% of the given data) were in an acceptable condition, while the remaining 1210 cars (70\% of the given data) are seen to be unacceptable.
+
 
 ```{r packages to load, include=FALSE}
 library(dplyr)
@@ -33,6 +34,8 @@ library(fpc)
 library(FNN)
 library(rpart)
 library(rpart.plot)
+
+set.seed(557)
 ```
 
 ```{r functions, include=FALSE}
@@ -42,7 +45,18 @@ p3data = read.csv("car.csv", header=T)
 ```
 ## Exploritory Data Analysis
 
+ An initial examination of the data reveals no missing data (as no NA values were present). Also, the already present classification indicates that 518 cars (30\% of the given data) were in an acceptable condition, while the remaining 1210 cars (70\% of the given data) are seen to be unacceptable.
+ 
+ The colored bar charts below show the requency of cars within each category of four difference qualitative variables, split by condition. Some initial revealed relationships include car in acceptable conditions seeming having lower costs of both buying and maintainance. In addition, we note that cars with low safety ratings are exclusively in unacceptable conditions. These initial observations are in line with intuative preferences for cars; people want safe, convienent cars for a low price. 
+ 
+ the black and white box plots show the spready of car data for each of 2 quantitative variabless, again split by condition. We note that acceptable cars are only observed to have 4 or 5 doors, in addition cars in acceptable condition are more likely to have an increased number of doors. This increased door count may correlate with the car size and thus the overall safety of the car. 
+
 ```{r EDA - Fei, echo=FALSE, message = F, results = 'hide', fig.keep='all', fig.width = 8}
+p3data$buying <- factor(p3data$buying, levels = c("low", "med", "high", "vhigh"))
+p3data$maint <- factor(p3data$maint, levels = c("low", "med", "high", "vhigh"))
+p3data$lug_boot <- factor(p3data$lug_boot, levels = c("small", "med", "big"))
+p3data$safety <- factor(p3data$safety, levels = c("low", "med", "high"))
+
 
 buying = count(p3data, c("buying", "condition"))
 p1= ggplot(buying,aes(x = condition,y = freq ,fill = buying))+
@@ -109,7 +123,7 @@ test = p3data[-train_id,]
 # Step1: Begin with a small cp. 
 tree = rpart(condition ~., data= train, control = rpart.control(cp = 0.0001))
 printcp(tree)
-prp(tree)
+prp(tree, faclen = 0, cex = 0.8, node.fun=tot_count)
 
 # Step2: Pick the tree size that minimizes misclassification rate (i.e. prediction error).
 # Prediction error rate in training data = Root node error * rel error * 100%
@@ -142,12 +156,23 @@ rownames(tconf.matrix) <- paste("Actual", rownames(tconf.matrix), sep = ":")
 colnames(tconf.matrix) <- paste("Pred", colnames(tconf.matrix), sep = ":")
 print(tconf.matrix)
 
-knitr::kable(tconf.matrix)
-
 ```
 
 
 # Conclusions 
+
+The "best" unpruned tree created with the training data was chosen to be the tree that minimizes misclassification rate. Using these rates we found that within pruned tree we observed a prediciton error rate in the training data of 2.89\% and a prediciton error rate in cross-validation of 2.96\%. We consider minimizing  misclassification rates to be vital with these car condition classification  data as the consequences of purchasing/driving in an unacceptable car includes a risk to one's personal safety. 
+
+The above trees represent the resulting unpruned (top) and pruned (bottom) trees for classifying cars into either acceptable or unacceptable conditions. Several of the initial splits (number of persons and safety rating) reflect the stark differences between conditions that were revealed in the EDA above. With just these two splits the majority (763) of the unacceptable condition cars have been identified. Our unpruned tree has 15 splits while our pruned tree has just 13 splits. 
+
+The confusion matrices below show the accuracy of the tree's predicitons for the training (top) and testing (bottom) datasets. 
+
+```{r table, echo = F}
+
+knitr::kable(conf.matrix)
+knitr::kable(tconf.matrix)
+
+```
 
 <!-- Describe the decision tree obtained for your dataset: what are the candidate splits used, what are the splits in the tree, what is the goodness of every split, how many training and testing samples fall into each node, what is the resubstitution error rate of the tree. -->
 
