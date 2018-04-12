@@ -1,11 +1,11 @@
 ---
 title: "Project 3"
 output:
-  html_notebook: default
   pdf_document:
     keep_tex: yes
     latex_engine: xelatex
   word_document: default
+  html_notebook: default
 ---
 
 #Introduction
@@ -34,6 +34,7 @@ library(fpc)
 library(FNN)
 library(rpart)
 library(rpart.plot)
+library(caret)
 
 set.seed(557)
 ```
@@ -49,7 +50,7 @@ p3data = read.csv("car.csv", header=T)
  
  The colored bar charts below show the requency of cars within each category of four difference qualitative variables, split by condition. Some initial revealed relationships include car in acceptable conditions seeming having lower costs of both buying and maintainance. In addition, we note that cars with low safety ratings are exclusively in unacceptable conditions. These initial observations are in line with intuative preferences for cars; people want safe, convienent cars for a low price. 
  
- the black and white box plots show the spready of car data for each of 2 quantitative variabless, again split by condition. We note that acceptable cars are only observed to have 4 or 5 doors, in addition cars in acceptable condition are more likely to have an increased number of doors. This increased door count may correlate with the car size and thus the overall safety of the car. 
+ The black and white box plots show the spready of car data for each of 2 quantitative variabless, again split by condition. We note that acceptable cars are only observed to have 4 or 5 doors, in addition cars in acceptable condition are more likely to have an increased number of doors. This increased door count may correlate with the car size and thus the overall safety of the car. 
 
 ```{r EDA - Fei, echo=FALSE, message = F, results = 'hide', fig.keep='all', fig.width = 8}
 p3data$buying <- factor(p3data$buying, levels = c("low", "med", "high", "vhigh"))
@@ -93,13 +94,13 @@ grid.arrange(p5,p6, ncol=2)
 
 #Analysis
 
-In this project, we will use random forest classification to classify the given data into acceptable and unaccepable conditions. In addition, we shall check whether dimension reduction approaches in the form of principal component analysis (PCA) improve classification performance. Wedivide the given data into test data (20\% of the given data) and training data (80\% of the given data) after randomizing the overall dataset. Effectiveness will be determined by assessing the total misclassification rate on the training and test data for each method. We implement our classification method on different subsets of data (generated via dimension reduction methods),  and the results shall be collectively summarized.
+In this project, we will use tree classifier to classify the given data into acceptable and unaccepable conditions. We divided the given data into test data (20\% of the given data) and training data (80\% of the given data) after randomizing the overall dataset. Prediction accuracy will be determined by assessing the total misclassification rate on the training and test data. 
 
 A tree based method can be used to predict the expected value of either a qualitative response (classification tree) or a quantitative response (regression trees). However, as our given data set has a qualitative response, we shall focus on classification trees. We predict that each observation belongs to the most commonly occurring class of training observations in the region to which it belongs. In interpreting the results of a classification tree, we are often interested not only in the class prediction corresponding to a particular terminal node region, but also in the class proportions among the training observations that fall into that region. Since we plan to assign an observation in a given region to the most commonly occurring class of training observations in that region, the classification error rate is simply the fraction of the training observations in that region that do not belong to the most common class.
 
 ## Pseudo-code of the tree structured classifier
 
- Each tree is grown as follows:
+Our classifier tree is grown as follows:
 
 1. A single variable is found which best splits the data into two groups (‘best’ will be defined later). 
 
@@ -110,8 +111,11 @@ A tree based method can be used to predict the expected value of either a qualit
 4. Pick the tree size that minimizes misclassification rate (i.e. prediction error).
 
 5. Prune the tree using the best complexity parameter.
+   Here, the complexity parameter means that if any split does not increase the overall R-square of the model by at least #complexity parameter# (where R-square is the usual linear-models definition) then that split is decreed to be, a priori, not worth pursuing. This parameter allows us to avoid over-fitting. 
 
 ## Apply tree classifier to the example dataset
+
+The unpruned (top plot) and pruned (bottom plot) tree developed based on training dataset are shown below. They both show that the number of people a car can carry and the safety level are very critical to determine whether a car is acceptable or not. But the pruned tree is simpler and easier to interpret and apply because some unimportant branches have been pruned. 
 
 ```{r Classifier - Fei, echo=FALSE, message = F, results = 'hide', fig.keep='all', fig.width = 8}
 
@@ -123,7 +127,7 @@ test = p3data[-train_id,]
 # Step1: Begin with a small cp. 
 tree = rpart(condition ~., data= train, control = rpart.control(cp = 0.0001))
 printcp(tree)
-prp(tree, faclen = 0, cex = 0.8, node.fun=tot_count)
+prp(tree, faclen = 0, cex = 0.8) #node.fun=tot_count)
 
 # Step2: Pick the tree size that minimizes misclassification rate (i.e. prediction error).
 # Prediction error rate in training data = Root node error * rel error * 100%
@@ -162,11 +166,9 @@ print(tconf.matrix)
 
 # Conclusions 
 
-The "best" unpruned tree created with the training data was chosen to be the tree that minimizes misclassification rate. Using these rates we found that within pruned tree we observed a prediciton error rate in the training data of 2.89\% and a prediciton error rate in cross-validation of 2.96\%. We consider minimizing  misclassification rates to be vital with these car condition classification  data as the consequences of purchasing/driving in an unacceptable car includes a risk to one's personal safety. 
-
 The above trees represent the resulting unpruned (top) and pruned (bottom) trees for classifying cars into either acceptable or unacceptable conditions. Several of the initial splits (number of persons and safety rating) reflect the stark differences between conditions that were revealed in the EDA above. With just these two splits the majority (763) of the unacceptable condition cars have been identified. Our unpruned tree has 15 splits while our pruned tree has just 13 splits. 
 
-The confusion matrices below show the accuracy of the tree's predicitons for the training (top) and testing (bottom) datasets. 
+The confusion matrices below show the accuracy of the pruned tree's predicitons for the training (top) and testing (bottom) datasets. We observed a prediciton error rate of 2.60\% in the training data and of 2.89\% in the testing data. We consider minimizing  misclassification rates to be vital with these car condition classification  data as the consequences of purchasing/driving in an unacceptable car includes a risk to one's personal safety. 
 
 ```{r table, echo = F}
 
