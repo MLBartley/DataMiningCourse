@@ -1,0 +1,147 @@
+---
+title: "Project 4"
+output:
+  pdf_document:
+    keep_tex: yes
+    latex_engine: xelatex
+  html_notebook: default
+  word_document: default
+---
+
+
+#Introduction
+
+This is Project 4 for STAT 557 2018 Spring by Meridith Bartley and Fei Jiang. The aim of this project is to practice EM algorithm and compare MDA with QDA. 
+
+#Description of Data
+This dataset contains soil sample data over the US downloaded from Natural Resources Conservation Service (NRCS). After removing the incomplete data records and excluding the data records with impossible values, there are around 14,000 records left, each of which includes physical and chemical properties of soil samples (sand, silt, clay, organic carbon, bulk density, CEC soil, CEC clay, base saturation, and pH) and the corresponding soil classification group (soil order). 
+
+Boxplots for each physical and chemical property used as explanitory variables in the subsequent classification models are included below. This EDA allows for early indication of which variables may possibly be ommitted during dimention reduction. That is, what properties do not differ significantly between soil Orders.
+
+
+```{r load required packages, include=FALSE}
+library(ggplot2)
+library(dplyr)
+library(magrittr)
+library(MASS)
+library(caret)
+library(nnet) 
+library(scales)
+library(klaR)
+library(stats)
+library(grid)
+library(gridExtra)
+library(mclust)
+library(mvtnorm)
+library(mda)
+
+```
+
+
+```{r load code and clean, include=FALSE, echo = F, message = F}
+# Basic clearning of our dataset 
+project1data <- read.csv(file = "project1data.csv")
+project1data <- project1data[,-c(1,2,4)] #remove the ID and Horizon columns which are useless,Silt is redundant information since it could be calculated from Sand and Clay. 
+project1data <- project1data[sample(nrow(project1data),nrow(project1data)),] ###shuffle rows
+
+
+```
+
+## Exploritory Data Analysis
+```{r EDA - Mer, echo=FALSE, message = F, results = 'hide', fig.keep='all', fig.width = 8}
+
+varlist <- names(project1data)[-9]
+
+customPlot <- function(varName) {
+
+project1data %>% 
+group_by_("Order") %>% 
+select_("Order",varName) %>% 
+ggplot(aes_string("Order",varName)) + geom_boxplot() + 
+   theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+}
+
+grid.arrange(grobs = lapply(varlist[1:4],customPlot))
+grid.arrange(grobs = lapply(varlist[5:8],customPlot))
+
+
+# pairs(project1data)
+# cor(project1data[, -9])
+
+
+```
+
+
+#Analysis
+
+```{r include=FALSE}
+
+#data partition
+train_id <- caret::createDataPartition(y=project1data$Order, p=0.8,list = FALSE)
+train <- project1data[train_id,]
+test <- project1data[-train_id,]
+```
+
+## (MDA)
+```{r MDA - Fei, echo =F}
+
+#mda
+mda.fei <- mda(Order ~., data = train)
+
+#predict test data
+mda.predict = predict(mda.fei, newdata=test)
+
+# Assess the accuracy of the prediction for each soil class (Order) in test data
+ct.mda <- table(test$Order, mda.predict)
+cc.mda <- diag(prop.table(ct.mda, 1))
+
+```
+
+## Quadratic Discriminant Analysis (QDA) 
+
+```{r QDA without PCA- Fei, echo =F}
+
+
+#qda
+qda.fei <- MASS::qda(Order ~., data = train)
+
+#predict test data
+qda.predict = predict(qda.fei, newdata=test)
+
+# Assess the accuracy of the prediction for each soil class (Order) in test data
+ct.qda <- table(test$Order, qda.predict$class)
+cc.qda <- diag(prop.table(ct.qda, 1))
+
+
+```
+
+```{r Compare MDA and QDA}
+
+#mda
+correct.mda <- diag(prop.table(ct.mda, 1))
+# total percent correct
+totcorrect.mda <- sum(diag(prop.table(ct.mda)))
+
+#qda
+correct.qda <- diag(prop.table(ct.qda, 1))
+# total percent correct
+totcorrect.qda <- sum(diag(prop.table(ct.qda)))
+
+model_comparison <- data.frame(rbind(correct.mda, correct.qda))
+model_comparison$Overall=c(totcorrect.mda,totcorrect.qda)
+
+model_comparison <-model_comparison %>%set_rownames(c("MDA", "QDA"))
+knitr::kable(round(model_comparison, digits = 2))
+
+#p <- ggplot(test, aes(x = Sand, y = Clay, color = mda.predict)) + geom_point() + stat_contour(aes(x = Sand, y = Clay, z = mda.predict), data = test) + labs(title="MDA Decision Boundaries")
+#p
+```
+
+#Results
+
+I
+#Contributions
+
+The different tasks required to complete this project were equally divided between Meridith and Fei. Both members of this group contributed to the presentation slides and this report. 
+  
