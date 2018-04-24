@@ -75,17 +75,10 @@ grid.arrange(grobs = lapply(varlist[5:8],customPlot))
 
 #Analysis
 
-```{r include=FALSE}
 
-#data partition
-train_id <- caret::createDataPartition(y=project1data$Order, p=0.8,list = FALSE)
-train <- project1data[train_id,]
-test <- project1data[-train_id,]
-```
+# Mixture Discriminant Analysis (MDA)
 
-# Principle Component Analysis
 
-In order to test whether dimension reduction will improve predictions we also conducted Principle Component Analysis on the original dataset to get a new dataset with fewer dimensions. According to our PCA results, the first four component in total can explain about 99.8% of variance of the original database. The coefficients of the relevent componets are listed in the table below. Therefore, we took the first four components and the soil order value to build a new dataset with less dimensions. 
 
 ```{r - Fei PCA, echo=FALSE}
 
@@ -94,38 +87,106 @@ pca = prcomp(project1data[,-9])
 # print(pca$rotation)
 summary.pca = summary(pca)
 # print(summary.pca)
-project1data.new = data.frame(pca=pca$x[,1:4],Order=project1data$Order) #First 4 components explained 99.8% of the variance in the original dataset
+project1data.new = data.frame(pca=pca$x[,1:8],Order=project1data$Order) 
 
 #table of the variance and coefficients
-knitr::kable(summary.pca$importance)
-knitr::kable(pca$rotation[, 1:4])
-
-
+#knitr::kable(summary.pca$importance)
+#knitr::kable(pca$rotation[, 1:4])
 
 ```
 
-## (MDA)
+
+```{r - Fei data partition, include=FALSE}
+
+#data partition
+train_id <- caret::createDataPartition(y=project1data.new$Order, p=0.8,list = FALSE)
+train <- project1data.new[train_id,]
+test <- project1data.new[-train_id,]
+```
+
+
 ```{r MDA - Fei, echo =F}
 
-#mda
-mda.fei <- mda(Order ~., data = train)
-
+#mda - 2 component 
+mda.2 <- mda(Order ~ pca.PC1 + pca.PC2 , data = train)
 #predict test data
-mda.predict = predict(mda.fei, newdata=test)
+mda2.predict = predict(mda.2, newdata=test)
+# Assess the total accuracy of test data
+ct2.mda <- table(test$Order, mda2.predict)
+totcorrect2.mda <- sum(diag(prop.table(ct2.mda)))
+# Assess the accuracy of the prediction for each soil class (Order) in test data
+#cc2.mda <- diag(prop.table(ct2.mda, 1))
 
+#mda - 3 component 
+mda.3 <- mda(Order ~ pca.PC1 + pca.PC2+ pca.PC3 , data = train)
+#predict test data
+mda3.predict = predict(mda.3, newdata=test)
+# Assess the total accuracy of test data
+ct3.mda <- table(test$Order, mda3.predict)
+totcorrect3.mda <- sum(diag(prop.table(ct3.mda)))
+
+#mda - 4 component 
+mda.4 <- mda(Order ~ pca.PC1 + pca.PC2+ pca.PC3+ pca.PC4 , data = train)
+#predict test data
+mda4.predict = predict(mda.4, newdata=test)
+# Assess the total accuracy of test data
+ct4.mda <- table(test$Order, mda4.predict)
+totcorrect4.mda <- sum(diag(prop.table(ct4.mda)))
+
+#mda - 5 component 
+mda.5 <- mda(Order ~ pca.PC1 + pca.PC2+ pca.PC3+ pca.PC4 + pca.PC5, data = train)
+#predict test data
+mda5.predict = predict(mda.5, newdata=test)
+# Assess the total accuracy of test data
+ct5.mda <- table(test$Order, mda5.predict)
+totcorrect5.mda <- sum(diag(prop.table(ct5.mda)))
+
+#mda - 6 component 
+mda.6 <- mda(Order ~ pca.PC1 + pca.PC2+ pca.PC3+ pca.PC4 + pca.PC5+ pca.PC6, data = train)
+#predict test data
+mda6.predict = predict(mda.6, newdata=test)
+# Assess the total accuracy of test data
+ct6.mda <- table(test$Order, mda6.predict)
+totcorrect6.mda <- sum(diag(prop.table(ct6.mda)))
+
+#mda - 7 component 
+mda.7 <- mda(Order ~ pca.PC1 + pca.PC2+ pca.PC3+ pca.PC4 + pca.PC5+ pca.PC6+ pca.PC7, data = train)
+#predict test data
+mda7.predict = predict(mda.7, newdata=test)
+# Assess the total accuracy of test data
+ct7.mda <- table(test$Order, mda7.predict)
+totcorrect7.mda <- sum(diag(prop.table(ct7.mda)))
+
+#mda - 8 component 
+mda.8 <- mda(Order ~ pca.PC1 + pca.PC2+ pca.PC3+ pca.PC4 + pca.PC5+ pca.PC6+ pca.PC7+ pca.PC8, data = train)
+#predict test data
+mda8.predict = predict(mda.8, newdata=test)
+# Assess the total accuracy of test data
+ct8.mda <- table(test$Order, mda8.predict)
+totcorrect8.mda <- sum(diag(prop.table(ct8.mda)))
+
+```
+
+In this part of the analysis, we randomly divided our dataset to traning data (80%) and test data (20%). We applied MDA in training data to get the model and then evaluated its accuracy in test data. In order to test the effects of the number of components in model performance and elaborate the dilemma between model complexity and prediction accuracy, we conducted MDA with the number of components included ranging from 2 to 8. The plot below shows the increasing prediction accuracy with the increasing number of components included. Along with the number of components increasing from 2 to 8, the predicting accuracy increased from `r round(totcorrect2.mda, 2) * 100`% to `r round(totcorrect8.mda, 2) * 100`%. From a perspective of balancing model complexity and prediction accuracy, we chose our final MDA model with four components included and used that model to conduct following comparison with QDA model. 
+
+
+## Comaprison between MDA and Quadratic Discriminant Analysis (QDA) 
+
+```{r MDA VS QDA without PCA- Fei, echo =F}
+
+#mda - 4 component 
+mda <- mda(Order ~ pca.PC1 + pca.PC2+ pca.PC3+ pca.PC4 , data = train)
+#predict test data
+mda.predict = predict(mda, newdata=test)
 # Assess the accuracy of the prediction for each soil class (Order) in test data
 ct.mda <- table(test$Order, mda.predict)
 cc.mda <- diag(prop.table(ct.mda, 1))
-
-```
-
-## Quadratic Discriminant Analysis (QDA) 
-
-```{r QDA without PCA- Fei, echo =F}
+# Assess the total accuracy of test data
+totcorrect.mda <- sum(diag(prop.table(ct4.mda)))
 
 
 #qda
-qda.fei <- MASS::qda(Order ~., data = train)
+qda.fei <- MASS::qda(Order ~pca.PC1 + pca.PC2+ pca.PC3+ pca.PC4, data = train)
 
 #predict test data
 qda.predict = predict(qda.fei, newdata=test)
@@ -135,10 +196,7 @@ ct.qda <- table(test$Order, qda.predict$class)
 cc.qda <- diag(prop.table(ct.qda, 1))
 
 
-```
-
-```{r Compare MDA and QDA}
-
+### comparison 
 #mda
 correct.mda <- diag(prop.table(ct.mda, 1))
 # total percent correct
@@ -148,6 +206,14 @@ totcorrect.mda <- sum(diag(prop.table(ct.mda)))
 correct.qda <- diag(prop.table(ct.qda, 1))
 # total percent correct
 totcorrect.qda <- sum(diag(prop.table(ct.qda)))
+
+```
+
+In this analysis, we conducted MDA and QDA analysis based on the same training and test dataset and the same first four components. The prediction accuracy for each soil types and overall accuracy of these two methods are shown in the table below. For the table we can see that the overall accuracy of MDA and QDA are very similar (`r round(totcorrect.mda, 2) * 100`% for MDA and `r round(totcorrect.qda, 2) * 100`% for QDA). However, their ability in correctly predicting individual soil groups differed. For instance, MDA is better at Inceptisols and Mollisols while QDA is better at Aridisols and Vertisols. 
+
+```{r Compare MDA and QDA}
+
+##table 
 
 model_comparison <- data.frame(rbind(correct.mda, correct.qda))
 model_comparison$Overall=c(totcorrect.mda,totcorrect.qda)
@@ -159,9 +225,15 @@ knitr::kable(round(model_comparison, digits = 2))
 #p
 ```
 
-#Results
+#Conclusion
 
-I
+In this project, we finished up two part. 
+
+In the first part, 
+
+In the second part, we conducted MDA on our dataset and explored the increasing prediction accuracy with the increasing model complexity. Through comparison with QDA on the same dataset using same predictors, we found out the comparably acceptable performance of these two methods. 
+
+
 #Contributions
 
 The different tasks required to complete this project were equally divided between Meridith and Fei. Both members of this group contributed to the presentation slides and this report. 
