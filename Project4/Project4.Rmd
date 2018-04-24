@@ -11,7 +11,7 @@ output:
 
 #Introduction
 
-This is Project 4 for STAT 557 2018 Spring by Meridith Bartley and Fei Jiang. The aim of this project is to practice EM algorithm and compare MDA with QDA. 
+This is Project 4 for STAT 557 2018 Spring by Meridith Bartley and Fei Jiang. The aim of this project is to practice EM algorithm, MDA algrithm and compare MDA with QDA. 
 
 #Description of Data
 This dataset contains soil sample data over the US downloaded from Natural Resources Conservation Service (NRCS). After removing the incomplete data records and excluding the data records with impossible values, there are around 14,000 records left, each of which includes physical and chemical properties of soil samples (sand, silt, clay, organic carbon, bulk density, CEC soil, CEC clay, base saturation, and pH) and the corresponding soil classification group (soil order). 
