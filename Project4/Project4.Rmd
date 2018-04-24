@@ -83,6 +83,27 @@ train <- project1data[train_id,]
 test <- project1data[-train_id,]
 ```
 
+# Principle Component Analysis
+
+In order to test whether dimension reduction will improve predictions we also conducted Principle Component Analysis on the original dataset to get a new dataset with fewer dimensions. According to our PCA results, the first four component in total can explain about 99.8% of variance of the original database. The coefficients of the relevent componets are listed in the table below. Therefore, we took the first four components and the soil order value to build a new dataset with less dimensions. 
+
+```{r - Fei PCA, echo=FALSE}
+
+# Create new dataset with PCA 
+pca = prcomp(project1data[,-9])
+# print(pca$rotation)
+summary.pca = summary(pca)
+# print(summary.pca)
+project1data.new = data.frame(pca=pca$x[,1:4],Order=project1data$Order) #First 4 components explained 99.8% of the variance in the original dataset
+
+#table of the variance and coefficients
+knitr::kable(summary.pca$importance)
+knitr::kable(pca$rotation[, 1:4])
+
+
+
+```
+
 ## (MDA)
 ```{r MDA - Fei, echo =F}
 
