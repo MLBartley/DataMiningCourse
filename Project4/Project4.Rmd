@@ -1,10 +1,10 @@
 ---
 title: "Project 4"
 output:
+  html_notebook: default
   pdf_document:
     keep_tex: yes
     latex_engine: xelatex
-  html_notebook: default
   word_document: default
 ---
 
@@ -34,6 +34,97 @@ library(gridExtra)
 library(mclust)
 library(mvtnorm)
 library(mda)
+
+```
+
+```{r EM alg functions, include=FALSE}
+
+### EM algorithm
+# x:      covariates (as a matrix, one row = one observation)
+# y:      response (as a factor)
+# R:      number of subclasses for each class
+# tol:    condition for convergence
+# maxit:  maximum number of iterations for EM to run
+EM <- function(x, y, R, tol = 1e-6, maxit = 10) {
+  labs <- levels(y)
+  K <- length(labs)
+  M <- ncol(x)
+  N <- nrow(x)
+  pi <- array(0, dim = c(K, R))
+  mu <- array(0, dim = c(K, M, R))
+  sigma <- diag(M)
+  y <- as.numeric(y)
+  ### come up with starting points using kmeans
+  for(k in 1:K) {
+    ind <- which(y == k)
+    mu[k, , ] <- t(kmeans(x[ind, ], R)$centers)
+    pi[k, ] <- rep(1/R, length = R)
+  }
+  converged <- F
+  ### main EM loop
+  # while(!converged) {
+  for(it in 1:maxit) {
+    # E step
+    p <- array(0, dim = c(N, R))
+    for(i in 1:N) {
+      k <- y[i]
+      for(r in 1:R) {
+        p[i,r] <- pi[k,r] * dmvnorm(x[i, ], mu[k, ,r], sigma)
+      }
+      p[i, ] <- p[i, ]/sum(p[i, ])
+    }
+    # M step
+    for(k in 1:K) {
+      ind <- which(y == k)
+      for(r in 1:R) {
+        pi[k,r] <- sum(p[ind,r])/length(ind)
+        mu[k, ,r] <- colSums(x[ind, ]*p[ind,r])/sum(p[ind,r])
+      }
+    }
+    tally <- 0
+    for(i in 1:N) {
+      z <- y[i]
+      for(r in 1:R) {
+        tmp <- x[i, ] - mu[z, ,r]
+        tally <- tally + p[i,r] * (tmp %o% tmp)
+      }
+    }
+    sigma <- tally/N
+    # check convergence
+
+  }
+  return(list(pi = pi,
+              mu = mu,
+              sigma = sigma,
+              class_labels = labs))
+}
+
+### predict classes
+# em: object from the result of EM function above
+# x: new data (as a matrix, one row = one observation)
+em_predict <- function(em, x) {
+  pi <- em$pi
+  mu <- em$mu
+  sigma <- em$sigma
+  labs <- em$class_labels
+  K <- dim(mu)[1]
+  R <- dim(mu)[3]
+  classes <- rep(NA, nrow(x))
+
+  for(i in 1:nrow(x)) {
+    probs <- rep(0, K)
+    for(k in 1:K) {
+      for(r in 1:R) {
+        probs[k] <- probs[k] + pi[k,r] * dmvnorm(x[i, ], mean = mu[k, ,r], sigma = sigma)
+      }
+    }
+    classes[i] <- which.max(probs)
+  }
+  return(factor(classes, labels = labs))
+}
+```
+
+```{r EM applied to data, include=FALSE}
 
 ```
 
