@@ -1,23 +1,23 @@
 ---
 title: "Project 4"
 output:
+  word_document: default
+  html_notebook: default
   pdf_document:
     keep_tex: yes
     latex_engine: xelatex
-  html_notebook: default
-  word_document: default
 ---
 
 
 #Introduction
 
-This is Project 4 for STAT 557 2018 Spring by Meridith Bartley and Fei Jiang. The aim of this project is to practice EM algorithm, MDA algrithm and compare MDA with QDA. 
+This is Project 4 for STAT 557 2018 Spring by Meridith Bartley and Fei Jiang. The aim of this project is to practice EM algorithm, mixture discriminant analysis (MDA) algrithm and compare MDA with QDA. 
 
-#Description of Data - EM Algorithm
+#Description of Data used for EM Algorithm
 
 This dataset contains Wisconsin breast cancer data over the US downloaded from UCI Machine Learning Data Repository. With no missing data there are around 570 records, each of which includes ten real-valued features are computed for each cell nucleus (thickness,size.unif, shape.unif, adhesion, size.cell, nuclei, chromatin, nucleoli, mitoses) and the corresponding diagnosis (malignant or benign)
 
-#Description of Data - MDA
+#Description of Data used for MDA and QDA
 This dataset contains soil sample data over the US downloaded from Natural Resources Conservation Service (NRCS). After removing the incomplete data records and excluding the data records with impossible values, there are around 14,000 records left, each of which includes physical and chemical properties of soil samples (sand, silt, clay, organic carbon, bulk density, CEC soil, CEC clay, base saturation, and pH) and the corresponding soil classification group (soil order). 
 
 Boxplots for each physical and chemical property used as explanitory variables in the subsequent classification models are included below. This EDA allows for early indication of which variables may possibly be ommitted during dimention reduction. That is, what properties do not differ significantly between soil Orders.
@@ -165,7 +165,7 @@ project1data <- project1data[sample(nrow(project1data),nrow(project1data)),] ###
 
 ```
 
-## Exploritory Data Analysis
+
 ```{r EDA - Mer, echo=FALSE, message = F, results = 'hide', fig.keep='all', fig.width = 8}
 
 varlist <- names(project1data)[-9]
@@ -222,7 +222,7 @@ test <- project1data.new[-train_id,]
 
 ```
 
-# EM Algorithm for Mixture of Gaussians
+# EM Algorithm for Mixture of Gaussians in the breast cancer dataset
 
 In this application of an EM algorithm for a mixutre of Gaussians we randomly divided our dataset to training data (70%) and test data (30%). We applied the EM algorithm to training data to get the model and then evaluated its accuracy in test data. Resulting plots and precition confusion table are included below. 
 
@@ -278,7 +278,8 @@ points(t(fit2$mu[2, , ]), pch = 8, cex = 3, lwd = 3, col = 4)
 knitr::kable(table(fit_pred2, class_test))
 
 ```
-## Comaprison between MDA and Quadratic Discriminant Analysis (QDA) 
+
+## MDA and the effects of different numbers of components in the soil database
 
 ```{r MDA - Fei, echo =F}
 
@@ -343,8 +344,11 @@ totcorrect8.mda <- sum(diag(prop.table(ct8.mda)))
 ```
 
 In this part of the analysis, we randomly divided our dataset to traning data (80%) and test data (20%). We applied MDA in training data to get the model and then evaluated its accuracy in test data. In order to test the effects of the number of components in model performance and elaborate the dilemma between model complexity and prediction accuracy, we conducted MDA with the number of components included ranging from 2 to 8. The plot below shows the increasing prediction accuracy with the increasing number of components included. Along with the number of components increasing from 2 to 8, the predicting accuracy increased from `r round(totcorrect2.mda, 2) * 100`% to `r round(totcorrect8.mda, 2) * 100`%. From a perspective of balancing model complexity and prediction accuracy, we chose our final MDA model with four components included and used that model to conduct following comparison with QDA model. 
+```{r ,  echo = F}
+plot(x=c(2:8),y=c(totcorrect2.mda,totcorrect3.mda,totcorrect4.mda,totcorrect5.mda,totcorrect6.mda,totcorrect7.mda,totcorrect8.mda),xlab = "Number of Components", ylab = "Prediction Accuracy")
+```
 
-
+## Comaprison between MDA and QDA for the soil database
 
 ```{r MDA VS QDA without PCA- Fei, echo =F}
 
